@@ -36,10 +36,10 @@ class AuthenticationActivity : AppCompatActivity() {
         setContentView(R.layout.activity_authentication)
 
         loginButton = findViewById(R.id.loginButton)
-//         TODO: Implement the create account and sign in using FirebaseUI, use sign in using email and sign in using Google
+        // Implement the create account and sign in using FirebaseUI, use sign in using email and sign in using Google
         loginButton.setOnClickListener { launchSignInFlow() }
 
-//          TODO: If the user was authenticated, send him to RemindersActivity
+        // If the user was authenticated, send him to RemindersActivity
         navController = findNavController(this, R.id.nav_controller_view_tag)
 
         // Observe the authentication state so we can know if the user has logged in successfully.

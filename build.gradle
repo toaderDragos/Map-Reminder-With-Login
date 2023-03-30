@@ -2,7 +2,7 @@
 
 buildscript {
     ext.kotlinVersion = '1.6.0'
-    ext.navigationVersion = "2.2.0"
+    ext.navigationVersion = "2.4.1"
 
     repositories {
         google()
@@ -56,7 +56,7 @@ ext {
     koinVersion = '2.0.1'
     truthVersion = '0.44'
     junitVersion = '4.12'
-    androidXTestCoreVersion = '1.2.0-beta01'
+    androidXTestCoreVersion = '1.4.0-beta01'
     robolectricVersion = '4.3-beta-1'
     androidXTestExtKotlinRunnerVersion = '1.1.1'
     archTestingVersion = '2.0.0'

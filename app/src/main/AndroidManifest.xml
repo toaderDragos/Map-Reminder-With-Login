@@ -1,18 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.udacity.project4">
-    <!--
+    <!--   Dragos working project
+    OLD VERSION !!!!!!!!!!!!!!!!!!!!!!!!!!
          The ACCESS_COARSE/FINE_LOCATION permissions are not required to use
          Google Maps Android API v2, but you must specify either coarse or fine
          location permissions for the 'MyLocation' functionality.
     -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <!--         The BACKGROUND_LOCATION permission is required for geofencing functionality to work on Q+ -->
+    <!-- The BACKGROUND_LOCATION permission is required for geofencing functionality to work on Q+ -->
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
-
     <uses-permission android:name="android.permission.INTERNET" />
-
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
@@ -23,9 +22,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:exported="true"
+        <activity
             android:name=".locationreminders.ReminderDescriptionActivity"
-            />
+            android:exported="true" />
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
              (See the file "res/values/google_maps_api.xml").
@@ -38,15 +37,17 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_key" />
 
-        <activity android:exported="true"
-            android:name=".authentication.AuthenticationActivity">
+        <activity
+            android:name=".authentication.AuthenticationActivity"
+            android:exported="true">
         </activity>
 
-        <activity android:exported="true"
-            android:name=".locationreminders.RemindersActivity">
+        <activity
+            android:name=".locationreminders.RemindersActivity"
+            android:exported="true">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
+                <action android:name="android.intent.action.MAIN"
+                    android:exported="true"/>
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

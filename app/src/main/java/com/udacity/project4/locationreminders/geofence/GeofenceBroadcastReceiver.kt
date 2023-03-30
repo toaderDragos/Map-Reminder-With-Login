@@ -3,6 +3,10 @@ package com.udacity.project4.locationreminders.geofence
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.util.Log
+import com.google.android.gms.location.GeofencingEvent
+import com.udacity.project4.locationreminders.geofence.GeofenceTransitionsJobIntentService.Companion.ACTION_GEOFENCE_EVENT
+import java.util.concurrent.TimeUnit
 
 /**
  * Triggered by the Geofence.  Since we can have many Geofences at once, we pull the request
@@ -14,10 +18,18 @@ import android.content.Intent
  *
  */
 
+object GeofencingConstants {
+    /**
+     * Used to set an expiration time for a geofence. After this amount of time, Location services
+     * stops tracking the geofence. For this sample, geofences expire after one hour.
+     */
+    val GEOFENCE_EXPIRATION_IN_MILLISECONDS: Long = TimeUnit.HOURS.toMillis(1)
+    const val GEOFENCE_RADIUS_IN_METERS = 100f
+    const val EXTRA_GEOFENCE_INDEX = "GEOFENCE_INDEX"
+}
+
 class GeofenceBroadcastReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-
-//TODO: implement the onReceive method to receive the geofencing events at the background
-
+        GeofenceTransitionsJobIntentService.enqueueWork(context,intent)
     }
 }

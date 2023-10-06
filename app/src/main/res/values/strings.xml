@@ -42,4 +42,9 @@
     <string name="error_adding_geofence">Error Happened, Can\'t Add Geofence</string>
     <string name="login2">Login</string>
     <string name="save_location">Save Location</string>
+    <string name="the_title_of_the_reminder">The title of the reminder</string>
+    <string name="description">Description</string>
+    <string name="the_description">The description</string>
+    <string name="location_name">Location name</string>
+    <string name="location">Location</string>
 </resources>

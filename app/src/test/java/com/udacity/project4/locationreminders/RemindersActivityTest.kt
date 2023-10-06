@@ -1,4 +1,4 @@
-package com.udacity.project4
+package com.udacity.project4.locationreminders
 
 import android.app.Application
 import androidx.test.core.app.ApplicationProvider.getApplicationContext

@@ -11,6 +11,9 @@
         <action
             android:id="@+id/to_save_reminder"
             app:destination="@id/saveReminderFragment" />
+        <action
+            android:id="@+id/action_reminderListFragment_to_authenticationActivity"
+            app:destination="@id/authenticationActivity" />
     </fragment>
     <activity
         android:id="@+id/mainActivity"

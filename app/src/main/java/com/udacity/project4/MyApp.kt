@@ -17,7 +17,9 @@ class MyApp : Application() {
         super.onCreate()
 
         /**
-         * use Koin Library as a service locator
+         * use Koin Library as a service locator for dependency injection.
+         * A service locator is a design pattern that provides a registry of available dependencies and
+         * creates instances of these dependencies on demand.
          */
         val myModule = module {
             //Declare a ViewModel - be later inject into Fragment with dedicated injector using by viewModel()
@@ -35,7 +37,8 @@ class MyApp : Application() {
                     get() as ReminderDataSource
                 )
             }
-            single { RemindersLocalRepository(get()) as ReminderDataSource }
+
+            single { RemindersLocalRepository(get()) as ReminderDataSource}
             single { LocalDB.createRemindersDao(this@MyApp) }
         }
 

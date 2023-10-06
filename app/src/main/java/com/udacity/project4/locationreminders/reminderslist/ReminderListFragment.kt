@@ -1,10 +1,14 @@
 package com.udacity.project4.locationreminders.reminderslist
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.*
 import androidx.databinding.DataBindingUtil
+import androidx.navigation.ActivityNavigator
+import androidx.navigation.fragment.findNavController
 import com.firebase.ui.auth.AuthUI
 import com.udacity.project4.R
+import com.udacity.project4.authentication.AuthenticationActivity
 import com.udacity.project4.base.BaseFragment
 import com.udacity.project4.base.NavigationCommand
 import com.udacity.project4.databinding.FragmentRemindersBinding
@@ -14,7 +18,7 @@ import com.udacity.project4.utils.setup
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 /**
- Implement the logout function Below. Modify!!
+ The list of reminders is displayed on the RemindersListFragment. The user can add a new reminder by clicking on the FAB button.
  */
 
 class ReminderListFragment : BaseFragment() {
@@ -25,8 +29,7 @@ class ReminderListFragment : BaseFragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        binding =
-            DataBindingUtil.inflate(
+        binding = DataBindingUtil.inflate(
                 inflater,
                 R.layout.fragment_reminders, container, false
             )
@@ -69,7 +72,7 @@ class ReminderListFragment : BaseFragment() {
         val adapter = RemindersListAdapter {
         }
 
-//        setup the recycler view using the extension function
+        // Setup the recycler view using the extension function
         binding.reminderssRecyclerView.setup(adapter)
     }
 
@@ -77,6 +80,8 @@ class ReminderListFragment : BaseFragment() {
         when (item.itemId) {
             R.id.logout -> {
                 AuthUI.getInstance().signOut(requireContext())
+                val intent = Intent(context, AuthenticationActivity::class.java)
+                startActivity(intent)
             }
         }
         return super.onOptionsItemSelected(item)

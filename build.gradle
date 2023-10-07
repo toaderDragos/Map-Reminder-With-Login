@@ -1,24 +1,26 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
 buildscript {
-    ext.kotlinVersion = '1.6.0'
-    ext.navigationVersion = "2.4.1"
+    ext.kotlinVersion = '1.8.0'
+    ext.navigationVersion = "2.7.0"
 
     repositories {
         google()
         mavenCentral()
-
     }
+
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.2.0'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.0"
+        classpath 'com.android.tools.build:gradle:4.3.0'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.0"
         classpath "androidx.navigation:navigation-safe-args-gradle-plugin:$navigationVersion"
-        classpath 'com.google.gms:google-services:4.3.0'
+        classpath 'com.google.gms:google-services:4.3.3'
+        classpath "io.insert-koin:koin-test-junit5:3.4.3"
+    }
 
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
-    }
+
 }
 
 allprojects {
@@ -50,14 +52,14 @@ ext {
     recyclerViewVersion = '1.1.0'
     mockitoVersion = '2.8.9'
     constraintVersion = '2.0.0-rc1'
-    dexMakerVersion = '2.12.1'
+    dexMakerVersion = '2.28.3'
     coroutinesVersion = '1.2.1'
     roomVersion = '2.2.5'
-    koinVersion = '2.0.1'
+    koinVersion = '3.4.3'
     truthVersion = '0.44'
     junitVersion = '4.12'
-    androidXTestCoreVersion = '1.4.0-beta01'
-    robolectricVersion = '4.3-beta-1'
+    androidXTestCoreVersion = '1.4.0'
+    robolectricVersion = '4.5-alpha-3'
     androidXTestExtKotlinRunnerVersion = '1.1.1'
     archTestingVersion = '2.0.0'
     playServicesVersion = '17.0.0'

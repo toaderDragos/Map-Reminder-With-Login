@@ -2,17 +2,16 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 apply plugin: "androidx.navigation.safeargs.kotlin"
-apply plugin: 'kotlin-android-extensions'
 apply plugin: 'com.google.gms.google-services'
 
 android {
-    compileSdkVersion 31
-    buildToolsVersion "23.0.1"
+    compileSdkVersion 34
+    buildToolsVersion "23.0.2"
 
     defaultConfig {
         applicationId "com.udacity.project4"
         minSdkVersion 19
-        targetSdkVersion 31
+        targetSdkVersion 33
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -50,6 +49,18 @@ android {
     buildFeatures {
         dataBinding true
     }
+
+    //kotlin DSL
+    configurations.all {
+        resolutionStrategy {
+            force("org.antlr:antlr4-runtime:4.7.1")
+            force("org.antlr:antlr4-tool:4.7.1")
+        }
+    }
+
+    packagingOptions {
+        exclude 'mockito-extensions/org.mockito.plugins.MockMaker'
+    }
 }
 
 dependencies {
@@ -58,7 +69,7 @@ dependencies {
     implementation "androidx.appcompat:appcompat:$appCompatVersion"
     implementation "androidx.legacy:legacy-support-v4:$androidXLegacySupport"
     implementation "androidx.annotation:annotation:$androidXAnnotations"
-    implementation "org.jetbrains.kotlin:kotlin-reflect:1.7.10"
+
     implementation "androidx.cardview:cardview:$cardVersion"
     implementation "com.google.android.material:material:$materialVersion"
     implementation "androidx.recyclerview:recyclerview:$recyclerViewVersion"
@@ -70,6 +81,10 @@ dependencies {
     //Navigation dependencies
     implementation 'androidx.appcompat:appcompat:1.2.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.0.0-rc1'
+    testImplementation project(path: ':app')
+    testImplementation project(path: ':app')
+    androidTestImplementation project(path: ':app')
+    androidTestImplementation project(path: ':app')
     kapt "androidx.lifecycle:lifecycle-compiler:$archLifecycleVersion"
     implementation "androidx.lifecycle:lifecycle-extensions:$archLifecycleVersion"
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$archLifecycleVersion"
@@ -87,10 +102,21 @@ dependencies {
     //Coroutines Dependencies
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutinesVersion"
 
-    //Koin
-    implementation "io.insert-koin:koin-android:$koinVersion"
-    implementation "io.insert-koin:koin-androidx-viewmodel:$koinVersion"
+    // FirebaseUI for Firebase Realtime Database
+    implementation 'com.firebaseui:firebase-ui-auth:8.0.2'
 
+    // Required only if Facebook login support is required
+    // Find the latest Facebook SDK releases here: https://github.com/facebook/facebook-android-sdk/blob/master/CHANGELOG.md
+    implementation 'com.facebook.android:facebook-login:8.1.0'
+
+    // Koin Test features
+    testImplementation "io.insert-koin:koin-test:$koinVersion"
+    // Koin for JUnit 4
+    testImplementation "io.insert-koin:koin-test-junit4:$koinVersion"
+    // Koin for JUnit 5
+    testImplementation "io.insert-koin:koin-test-junit5:$koinVersion"
+    // Koin for Android
+    implementation "io.insert-koin:koin-android:$koinVersion"
 
     // Dependencies for local unit tests
     testImplementation "junit:junit:$junitVersion"
@@ -120,27 +146,23 @@ dependencies {
     androidTestImplementation "androidx.test.espresso:espresso-intents:$espressoVersion"
     androidTestImplementation "androidx.test.espresso.idling:idling-concurrent:$espressoVersion"
     androidTestImplementation "junit:junit:$junitVersion"
+    androidTestImplementation "org.mockito:mockito-android:5.4.0"
+
     // Once https://issuetracker.google.com/127986458 is fixed this can be testImplementation
-    implementation "androidx.fragment:fragment-testing:$fragmentVersion"
+    debugImplementation "androidx.fragment:fragment-testing:$fragmentVersion"
     implementation "androidx.test:core:$androidXTestCoreVersion"
     implementation "androidx.fragment:fragment:$fragmentVersion"
-    androidTestImplementation "org.mockito:mockito-core:$mockitoVersion"
+    // androidTestImplementation "org.mockito:mockito-core:$mockitoVersion"
     androidTestImplementation "com.linkedin.dexmaker:dexmaker-mockito:$dexMakerVersion"
-    androidTestImplementation('org.koin:koin-test:2.0.1') { exclude group: 'org.mockito' }
+    // androidTestImplementation('org.koin:koin-test:3.4.3') { exclude group: 'org.mockito' }
 
-    // firebase
-    implementation 'androidx.multidex:multidex:2.0.1'
-    implementation 'com.google.firebase:firebase-auth-ktx'
-    implementation 'com.google.firebase:firebase-database-ktx:20.1.0'
-    implementation platform('com.google.firebase:firebase-bom:31.2.2')
-    implementation 'com.google.firebase:firebase-analytics-ktx'
-    implementation 'com.google.firebase:firebase-firestore-ktx'
-    implementation 'com.google.firebase:firebase-firestore'
-    implementation 'com.firebaseui:firebase-ui-auth:7.2.0'
 
     //Maps & Geofencing
     implementation "com.google.android.gms:play-services-location:$playServicesVersion"
     implementation "com.google.android.gms:play-services-maps:$playServicesVersion"
+
+    //Multidex support dependencies
+    implementation "androidx.multidex:multidex:2.0.1"
 
 
 }

@@ -25,7 +25,7 @@ import org.junit.runner.RunWith
 @MediumTest
 class RemindersLocalRepositoryTest {
 
-    //    DONE: Add testing implementation to the RemindersLocalRepository.kt
+    // Testing implementation to the RemindersLocalRepository.kt
     @get:Rule
     var instantExecutorRule = InstantTaskExecutorRule()
 
@@ -38,7 +38,7 @@ class RemindersLocalRepositoryTest {
             ApplicationProvider.getApplicationContext(),
             RemindersDatabase::class.java
         ).allowMainThreadQueries()
-            .build()     // For testing purposes IImportant - if you don't do this an error will pop up because of using main dispatcher
+            .build()     // For testing purposes Important - if you don't do this an error will pop up because of using main dispatcher
         remindersLocalRepository = RemindersLocalRepository(
             database.reminderDao(),
             Dispatchers.Main

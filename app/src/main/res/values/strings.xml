@@ -7,7 +7,7 @@
     <string name="reminder_desc">Description</string>
     <string name="reminder_location">Reminder Location</string>
     <string name="save">Save</string>
-    <string name="reminder_saved">Reminder Saved !</string>
+    <string name="reminder_saved">Reminder Saved!</string>
     <string name="logout">Logout</string>
     <string name="welcome_to_the_location_reminder_app">Welcome to the location reminder app</string>
     <string name="login">Login</string>
@@ -47,4 +47,15 @@
     <string name="the_description">The description</string>
     <string name="location_name">Location name</string>
     <string name="location">Location</string>
+    <string name="title">Title</string>
+    <string name="please_fill_out_the_title">Please fill out the title</string>
+    <string name="please_select_a_location">Please select a location</string>
+    <string name="geofence_added">Geofence added!</string>
+    <string name="error_in_adding_geofence">Error in adding geofence</string>
+    <string name="geofence_removed">Geofence removed</string>
+    <string name="error_in_removing_geofence">Error in removing geofence</string>
+    <string name="update">Update</string>
+    <string name="delete">Delete</string>
+    <string name="reminder_updated">The reminder was updated!</string>
+    <string name="reminder_deleted">The reminder was deleted!</string>
 </resources>

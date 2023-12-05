@@ -4,7 +4,6 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import androidx.room.Update
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 
 /** Complete until here - Dragos memo
@@ -39,4 +38,12 @@ interface RemindersDao {
     @Query("DELETE FROM reminders")
     fun deleteAllReminders()
 
+
+    /**
+     * Delete a reminder by id.
+     *
+     * @return the number of reminders deleted. This should always be 1.
+     */
+    @Query("DELETE FROM reminders WHERE entry_id = :reminderId")
+    fun deleteReminder(reminderId: String): Int
 }

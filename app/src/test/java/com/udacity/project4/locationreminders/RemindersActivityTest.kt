@@ -10,6 +10,7 @@ import com.udacity.project4.locationreminders.data.local.RemindersLocalRepositor
 import com.udacity.project4.locationreminders.reminderslist.RemindersListViewModel
 import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
 import kotlinx.coroutines.runBlocking
+import org.junit.After
 import org.junit.Before
 import org.junit.runner.RunWith
 import org.koin.androidx.viewmodel.dsl.viewModel
@@ -49,7 +50,7 @@ class RemindersActivityTest :
                     get() as ReminderDataSource
                 )
             }
-            single { RemindersLocalRepository(get()) as ReminderDataSource }
+            single { RemindersLocalRepository(get()) }
             single { LocalDB.createRemindersDao(appContext) }
         }
         //declare a new koin module
@@ -66,6 +67,64 @@ class RemindersActivityTest :
     }
 
 
-//    TODO: add End to End testing to the app
+    //    TODO: add End to End testing to the app
+// Extended Koin Test - embed autoclose @after method to close Koin after every test
+// This is required to use Koin's 'runBlockingTest' inject
+    @After
+    fun tearDown() {
+        stopKoin()
+    }
+
+//    // END TO END TESTING TO THE APP   - not my code
+//    @Test
+//    fun createReminder_saveAndDisplayReminder() {
+//
+//        //1. Launch RemindersActivity
+//        val activityScenario = ActivityScenario.launch(RemindersActivity::class.java)
+//        dataBindingIdlingResource.monitorActivity(activityScenario)
+//        //2. Click add reminder button
+//        onView(withId(R.id.addReminderFAB)).perform(click())
+//
+//        //3. Input details and navigate to location selection
+//        onView(withId(R.id.saveReminder)).perform(click())
+//        onView(withId(com.google.android.material.R.id.snackbar_text))
+//            .check(matches(withText(R.string.err_enter_title)))
+//        onView(withId(R.id.reminderTitle)).perform(replaceText("Title"))
+//        onView(withId(R.id.saveReminder)).perform(click())
+//        onView(withId(com.google.android.material.R.id.snackbar_text))
+//            .check(matches(withText(R.string.err_select_location)))
+//        onView(withId(R.id.reminderDescription)).perform(replaceText("Description"))
+//        onView(withId(R.id.selectLocation)).perform(click())
+//
+//        //4. Test menu items
+//        openActionBarOverflowOrOptionsMenu(getApplicationContext())
+//        onView(withText("Hybrid Map")).perform(click())
+//        openActionBarOverflowOrOptionsMenu(getApplicationContext())
+//        onView(withText("Satellite Map")).perform(click())
+//        openActionBarOverflowOrOptionsMenu(getApplicationContext())
+//        onView(withText("Terrain Map")).perform(click())
+//        openActionBarOverflowOrOptionsMenu(getApplicationContext())
+//        onView(withText("Normal Map")).perform(click())
+//
+//        //5. Long Click on the map and save location
+//        onView(withId(R.id.map)).check(matches(isDisplayed()))
+//        onView(withId(R.id.map)).perform(click())
+//        Thread.sleep(500L)
+//        onView(withId(R.id.save_button)).check(matches(isDisplayed()))
+//        onView(withId(R.id.save_button)).perform(click())
+//
+//        //6. saveReminder details
+//        onView(withId(R.id.reminderTitle)).check(matches(isDisplayed()))
+//        onView(withId(R.id.saveReminder)).perform(click())
+//
+//        //7. Assert reminder details are displayed
+//        onView(withText("Title")).check(matches(isDisplayed()))
+//        onView(withText("Description")).check(matches(isDisplayed()))
+//
+//        //8. Close activity
+//        activityScenario.close()
+//    }
+//}
+
 
 }

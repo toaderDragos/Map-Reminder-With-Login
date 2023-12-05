@@ -6,7 +6,7 @@ apply plugin: 'com.google.gms.google-services'
 
 android {
     compileSdkVersion 34
-    buildToolsVersion "23.0.2"
+//    buildToolsVersion "23.0.2"
 
     defaultConfig {
         applicationId "com.udacity.project4"
@@ -83,6 +83,7 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.0.0-rc1'
     testImplementation project(path: ':app')
     testImplementation project(path: ':app')
+    androidTestImplementation project(path: ':app')
     androidTestImplementation project(path: ':app')
     androidTestImplementation project(path: ':app')
     kapt "androidx.lifecycle:lifecycle-compiler:$archLifecycleVersion"

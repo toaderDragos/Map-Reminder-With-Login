@@ -3,23 +3,28 @@ package com.udacity.project4.locationreminders.savereminder
 import android.app.Application
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import com.google.android.gms.location.Geofence
+import com.google.android.gms.location.GeofencingRequest
 import com.google.android.gms.maps.model.PointOfInterest
 import com.udacity.project4.R
 import com.udacity.project4.base.BaseViewModel
 import com.udacity.project4.base.NavigationCommand
 import com.udacity.project4.locationreminders.data.ReminderDataSource
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
+import com.udacity.project4.locationreminders.data.dto.Result
+import com.udacity.project4.locationreminders.geofence.GeofencingConstants
 import com.udacity.project4.locationreminders.reminderslist.ReminderDataItem
 import kotlinx.coroutines.launch
 
 class SaveReminderViewModel(val app: Application, val dataSource: ReminderDataSource) :
     BaseViewModel(app) {
-    val reminderTitle = MutableLiveData<String>()
-    val reminderDescription = MutableLiveData<String>()
-    val reminderSelectedLocationStr = MutableLiveData<String>()
-    val selectedPOI = MutableLiveData<PointOfInterest>()
-    val latitude = MutableLiveData<Double>()
-    val longitude = MutableLiveData<Double>()
+    val reminderTitle = MutableLiveData<String?>()
+    val reminderDescription = MutableLiveData<String?>()
+    val reminderSelectedLocationStr = MutableLiveData<String?>()
+    val selectedPOI = MutableLiveData<PointOfInterest?>()
+    val latitude = MutableLiveData<Double?>()
+    val longitude = MutableLiveData<Double?>()
+
 
     /**
      * Clear the live data objects to start fresh next time the view model gets called
@@ -79,4 +84,61 @@ class SaveReminderViewModel(val app: Application, val dataSource: ReminderDataSo
         }
         return true
     }
+
+    fun geofencingRequestBuilder(
+        id: String,
+        latitude: Double,
+        longitude: Double
+    ): GeofencingRequest? {
+        val geofence = Geofence.Builder()
+            .setRequestId(id)
+            .setCircularRegion(
+                latitude,
+                longitude,
+                GeofencingConstants.GEOFENCE_RADIUS_IN_METERS
+            )
+            .setExpirationDuration(GeofencingConstants.GEOFENCE_EXPIRATION_IN_MILLISECONDS)
+            .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER)
+            .build()
+
+        val geofencingRequest = GeofencingRequest.Builder()
+            .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER)
+            .addGeofence(geofence)
+            .build()
+        return geofencingRequest
+    }
+
+    // TO DO Should update the new geofence after the reminder is updated should be fun updateReminderDeleteOldGeofenceAddNewGeofence
+    // TO DO - should find the id of the geofence and delete it then add the new geofence
+    fun updateReminder(reminderData: ReminderDataItem) {
+        viewModelScope.launch {
+            val result = dataSource.getReminder(reminderData.id)
+            if (result is Result.Success<ReminderDTO>) {
+                val reminderToUpdate = result.data
+                reminderToUpdate.let {
+                    it.title = reminderData.title
+                    it.description = reminderData.description
+                    it.location = reminderData.location
+                    it.latitude = reminderData.latitude
+                    it.longitude = reminderData.longitude
+                    dataSource.saveReminder(it)
+                    // Handle UI updates or navigation
+                    showLoading.value = false
+                    showToast.value = app.getString(R.string.reminder_updated)
+                    navigationCommand.value = NavigationCommand.Back
+                }
+            }
+        }
+    }
+
+    fun deleteReminder(id: String) {
+        viewModelScope.launch {
+            dataSource.deleteReminder(id)
+            // Handle UI updates or navigation
+            showLoading.value = false
+            showToast.value = app.getString(R.string.reminder_deleted)
+            navigationCommand.value = NavigationCommand.Back
+        }
+    }
+
 }

@@ -14,6 +14,9 @@
         <action
             android:id="@+id/action_reminderListFragment_to_authenticationActivity"
             app:destination="@id/authenticationActivity" />
+        <action
+            android:id="@+id/action_reminderListFragment_to_fragmentUpdateOrDelete"
+            app:destination="@id/fragmentUpdateOrDelete" />
     </fragment>
     <activity
         android:id="@+id/mainActivity"
@@ -33,7 +36,7 @@
     <fragment
         android:id="@+id/selectLocationFragment"
         android:name="com.udacity.project4.locationreminders.savereminder.selectreminderlocation.SelectLocationFragment"
-        android:label="Select Location" >
+        android:label="Select Location">
         <action
             android:id="@+id/action_selectLocationFragment_to_saveReminderFragment"
             app:destination="@id/saveReminderFragment" />
@@ -42,5 +45,16 @@
         android:id="@+id/authenticationActivity"
         android:name="com.udacity.project4.authentication.AuthenticationActivity"
         android:label="AuthenticationActivity" />
+    <fragment
+        android:id="@+id/fragmentUpdateOrDelete"
+        android:name="com.udacity.project4.locationreminders.savereminder.FragmentUpdateOrDelete"
+        android:label="FragmentUpdateOrDelete">
+        <action
+            android:id="@+id/action_fragmentUpdateOrDelete_to_reminderListFragment"
+            app:destination="@id/reminderListFragment" />
+        <argument
+            android:name="reminderItem"
+            app:argType="com.udacity.project4.locationreminders.reminderslist.ReminderDataItem" />
+    </fragment>
 
 </navigation>

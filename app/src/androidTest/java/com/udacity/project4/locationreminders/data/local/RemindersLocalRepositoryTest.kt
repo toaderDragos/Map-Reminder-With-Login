@@ -11,6 +11,7 @@ import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.After
@@ -51,7 +52,7 @@ class RemindersLocalRepositoryTest {
     }
 
     @Test
-    fun saveReminder_getReminderById() = runBlocking {
+    fun saveReminder_getReminderById() = runTest {
         // GIVEN - save a reminder
         val reminder = ReminderDTO(
             "title",

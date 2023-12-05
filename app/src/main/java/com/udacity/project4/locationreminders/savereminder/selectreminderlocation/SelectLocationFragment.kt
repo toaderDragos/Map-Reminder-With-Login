@@ -69,7 +69,7 @@ class SelectLocationFragment: Fragment() {
         mMapView.onResume() // needed to get the map to display immediately
 
         try {
-            MapsInitializer.initialize(activity!!.applicationContext)
+            MapsInitializer.initialize(requireActivity().applicationContext)
         } catch (e: Exception) {
             e.printStackTrace()
         }

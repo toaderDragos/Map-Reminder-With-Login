@@ -46,7 +46,7 @@ class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
         }
     }
 
-    // this was at the onReceive() method in GeoFences Starter file - at the Broadcast Receiver
+    // This was at the onReceive() method in GeoFences Starter file - at the Broadcast Receiver
     override fun onHandleWork(intent: Intent) {
         if (intent.action == ACTION_GEOFENCE_EVENT) {
             val geofencingEvent = GeofencingEvent.fromIntent(intent)
@@ -117,15 +117,12 @@ class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
             GeofenceStatusCodes.GEOFENCE_NOT_AVAILABLE -> resources.getString(
                 R.string.geofence_not_available
             )
-
             GeofenceStatusCodes.GEOFENCE_TOO_MANY_GEOFENCES -> resources.getString(
                 R.string.geofence_too_many_geofences
             )
-
             GeofenceStatusCodes.GEOFENCE_TOO_MANY_PENDING_INTENTS -> resources.getString(
                 R.string.geofence_too_many_pending_intents
             )
-
             else -> resources.getString(R.string.error_happened)
         }
     }

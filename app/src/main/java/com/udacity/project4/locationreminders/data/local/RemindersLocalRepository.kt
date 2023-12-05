@@ -3,7 +3,9 @@ package com.udacity.project4.locationreminders.data.local
 import com.udacity.project4.locationreminders.data.ReminderDataSource
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.data.dto.Result
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * Concrete implementation of a data source as a db.
@@ -19,7 +21,7 @@ class RemindersLocalRepository(
 ) : ReminderDataSource {
 
     /**
-     * Get the reminders list from the local db
+     * Gets the reminders list from the local db
      * @return Result the holds a Success with all the reminders or an Error object with the error message
      */
     override suspend fun getReminders(): Result<List<ReminderDTO>> = withContext(ioDispatcher) {
@@ -63,6 +65,12 @@ class RemindersLocalRepository(
     override suspend fun deleteAllReminders() {
         withContext(ioDispatcher) {
             remindersDao.deleteAllReminders()
+        }
+    }
+
+    override suspend fun deleteReminder(id: String) {
+        withContext(ioDispatcher) {
+            remindersDao.deleteReminder(id)
         }
     }
 }

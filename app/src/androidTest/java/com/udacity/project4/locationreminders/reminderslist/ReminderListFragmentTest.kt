@@ -44,24 +44,24 @@ class ReminderListFragmentTest {
     private val viewModel: RemindersListViewModel by inject(RemindersListViewModel::class.java)
 
 
-    val reminder1 = ReminderDTO("TITLE1", "DESCRIPTION1", "LOCATION1", 23.44, 43.34)
-    val reminder2 = ReminderDTO("TITLE2", "DESCRIPTION2", "LOCATION2", 51.11, 34.11)
-    val reminder3 = ReminderDTO("TITLE3", "DESCRIPTION3", "LOCATION3", 12.12, 45.23)
-    val reminders = mutableListOf(reminder1, reminder2, reminder3)
+    private val reminder1 = ReminderDTO("TITLE1", "DESCRIPTION1", "LOCATION1", 23.44, 43.34)
+    private val reminder2 = ReminderDTO("TITLE2", "DESCRIPTION2", "LOCATION2", 51.11, 34.11)
+    private val reminder3 = ReminderDTO("TITLE3", "DESCRIPTION3", "LOCATION3", 12.12, 45.23)
+    private val reminders = mutableListOf(reminder1, reminder2, reminder3)
 
     @Before
     fun init() {
         stopKoin()//stop the original app koin
         appContext = getApplicationContext()
 
-        // The FakeAndroidDataSource class DOES NOT EXIST actually in the folders of the project. It's a ghost class. Because we are in October 2023.
+
         val myModule = module {
             viewModel { RemindersListViewModel(appContext, get() as ReminderDataSource) }
             single { FakeAndroidDataSource(get()) }
             single { reminders }
         }
 
-        //declare a new koin module
+        // declare a new koin module
         org.koin.core.context.startKoin {
             modules(listOf(myModule))
         }

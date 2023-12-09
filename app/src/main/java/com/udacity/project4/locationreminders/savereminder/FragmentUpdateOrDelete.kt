@@ -10,6 +10,7 @@ import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.databinding.DataBindingUtil
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import com.google.android.gms.location.GeofencingClient
 import com.google.android.gms.location.LocationServices
 import com.udacity.project4.R
@@ -21,18 +22,14 @@ import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
 import org.koin.android.ext.android.inject
 import java.util.UUID
 
-class FragmentUpdateOrDelete() : BaseFragment() {
+class FragmentUpdateOrDelete : BaseFragment() {
+    private val navigationArgs: FragmentUpdateOrDeleteArgs by navArgs()
     override val _viewModel: SaveReminderViewModel by inject()
     private lateinit var binding: FragmentUpdateOrDeleteReminderBinding
     // lateinit var reminderData: ReminderDataItem
 
     private lateinit var geofencingClient: GeofencingClient
 
-//    private val geofencePendingIntent: PendingIntent by lazy {
-//        val intent = Intent(context, GeofenceBroadcastReceiver::class.java)
-//        intent.action = GeofenceTransitionsJobIntentService.ACTION_GEOFENCE_EVENT
-//        PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
-//    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -58,20 +55,18 @@ class FragmentUpdateOrDelete() : BaseFragment() {
         super.onViewCreated(view, savedInstanceState)
         // Populate UI with existing reminder data
         // TO DO - check if this works for real!!
-
+        val reminderData = navigationArgs.reminderItem
         binding.lifecycleOwner = this
         // takes you to the map fragment to select location
         binding.selectLocation.setOnClickListener {
 
-            val reminderData =
-                savedInstanceState?.getSerializable("reminderData") as ReminderDataItem
             // Remove old geofence - I do this here because this is the moment the user wants to change the location.
             removeGeofenceById(reminderData.id)
 
             _viewModel.navigationCommand.value = NavigationCommand
                 .To(
-                    SaveReminderFragmentDirections
-                        .actionSaveReminderFragmentToSelectLocationFragment()
+                    FragmentUpdateOrDeleteDirections
+                        .actionFragmentUpdateOrDeleteToSelectLocationFragment()
                 )
         }
 
@@ -101,16 +96,13 @@ class FragmentUpdateOrDelete() : BaseFragment() {
                     ReminderDataItem(title, description, location, latitude, longitude, id)
                 // Add reminder to local db
                 _viewModel.updateReminder(newReminderData)
+
                 // Navigate back to the reminders list
                 findNavController().navigate(FragmentUpdateOrDeleteDirections.actionFragmentUpdateOrDeleteToReminderListFragment())
             }
         }
 
         binding.deleteReminder.setOnClickListener {
-            // Loading it here because otherwise it will get a null error ( it loads before the user chose a reminder to edit
-            val reminderData =
-                savedInstanceState?.getSerializable("reminderData") as ReminderDataItem
-            // Code to handle delete
             _viewModel.deleteReminder(reminderData.id)
             findNavController().navigate(FragmentUpdateOrDeleteDirections.actionFragmentUpdateOrDeleteToReminderListFragment())
         }

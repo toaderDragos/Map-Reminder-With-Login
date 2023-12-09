@@ -73,12 +73,12 @@ class RemindersListViewModelTest {
         viewModel.remindersList.value = listOf(reminder1, reminder2, reminder3)
         viewModel.loadReminders()
         assert(viewModel.remindersList.value != null)
-
     }
 
     // Provide testing to the RemindersListViewModel and its live data objects
     @Test
     fun viewModel_remindersList_LiveData() {
+
         val remindersListViewModel: RemindersListViewModel by KoinJavaComponent.inject(
             RemindersListViewModel::class.java
         )
@@ -93,6 +93,5 @@ class RemindersListViewModelTest {
         // The getOrAwaitValue is given in course - it is stored in tests/util/LiveDataTestUtil.kt it helps test livedata
         val value = remindersListViewModel.remindersList.getOrAwaitValue()
         assert(value == listOf(reminder1, reminder2, reminder3))
-
     }
 }

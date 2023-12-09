@@ -44,4 +44,9 @@ class FakeAndroidDataSource (var reminders: MutableList<ReminderDTO> = mutableLi
     override suspend fun deleteAllReminders() {
         reminders.clear()
     }
+
+    // This was added so I can delete a reminder if I wanted to
+    override suspend fun deleteReminder(id: String) {
+        reminders.removeIf { reminder -> reminder.id == id }
+    }
 }

@@ -58,4 +58,6 @@
     <string name="delete">Delete</string>
     <string name="reminder_updated">The reminder was updated!</string>
     <string name="reminder_deleted">The reminder was deleted!</string>
+    <string name="error_in_deleting_reminder">Error in deleting reminder!</string>
+    <string name="error_in_removing_old_geofence">Error - the old location is still active!</string>
 </resources>

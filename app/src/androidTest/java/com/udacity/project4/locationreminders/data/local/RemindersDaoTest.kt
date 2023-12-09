@@ -46,7 +46,7 @@ class RemindersDaoTest {
 
         val loaded = database.reminderDao().getReminderById(reminder.id)
 
-        assertThat<ReminderDTO>(loaded as ReminderDTO, notNullValue())
+        assertThat(loaded as ReminderDTO, notNullValue())
         assertThat(loaded.id, `is`(reminder.id))
         assertThat(loaded.title, `is`(reminder.title))
         assertThat(loaded.description, `is`(reminder.description))

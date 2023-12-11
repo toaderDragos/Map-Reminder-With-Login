@@ -13,15 +13,15 @@ import org.junit.Before
 import org.junit.jupiter.api.Test
 import org.junit.runner.RunWith
 import org.koin.androidx.viewmodel.dsl.viewModel
-import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
-import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import org.koin.java.KoinJavaComponent
+import org.koin.test.KoinTest
+import org.koin.test.get
 
 @RunWith(AndroidJUnit4::class)
 @ExperimentalCoroutinesApi
-class RemindersListViewModelTest {
+class RemindersListViewModelTest : KoinTest {
 
     private lateinit var appContext: Application
     private lateinit var repository: ReminderDataSource
@@ -32,23 +32,26 @@ class RemindersListViewModelTest {
     // Inject the ViewModel
     private val viewModel: RemindersListViewModel by KoinJavaComponent.inject(RemindersListViewModel::class.java)
 
+    private val reminders = viewModel.remindersList.getOrAwaitValue()
+
     @Before
     fun init() {
         stopKoin()//stop the original app koin
         appContext = ApplicationProvider.getApplicationContext()
 
         val myModule = module {
-            viewModel { RemindersListViewModel(appContext, fdataSource) }
-            single<ReminderDataSource> { FakeDataSource(get()) }
+            viewModel { RemindersListViewModel(appContext, get()) }
+            single { FakeDataSource(get()) as ReminderDataSource }
+            single { reminders }
         }
 
         // Declare a new koin module
-        startKoin {
+        org.koin.core.context.GlobalContext.startKoin {
             modules(listOf(myModule))
         }
 
         // Get our real repository
-        repository = koinApplication().koin.get()
+        repository = get() as ReminderDataSource
 
     }
 

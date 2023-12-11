@@ -69,9 +69,10 @@ class SaveReminderViewModelTest {
         assertThat(snackBarValue, equals(R.string.err_enter_title))
     }
 
-//    @Test
-//    fun validateAndSaveReminder() {
-//    }
+    @Test
+    fun validateAndSaveReminder() {
+
+    }
 //
 //    @Test
 //    fun saveReminder() {

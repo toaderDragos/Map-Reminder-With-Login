@@ -83,6 +83,7 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.0.0-rc1'
     testImplementation project(path: ':app')
     testImplementation project(path: ':app')
+    testImplementation project(path: ':app')
     androidTestImplementation project(path: ':app')
     androidTestImplementation project(path: ':app')
     androidTestImplementation project(path: ':app')

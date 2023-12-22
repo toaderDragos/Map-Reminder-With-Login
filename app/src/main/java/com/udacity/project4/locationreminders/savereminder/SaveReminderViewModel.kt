@@ -126,6 +126,8 @@ class SaveReminderViewModel(val app: Application, val dataSource: ReminderDataSo
                     showLoading.value = false
                     showToast.value = app.getString(R.string.reminder_updated)
                     navigationCommand.value = NavigationCommand.Back
+                    // notify the list adapter to update the list
+
                 }
             }
         }

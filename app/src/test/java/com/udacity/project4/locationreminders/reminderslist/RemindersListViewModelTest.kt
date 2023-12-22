@@ -9,8 +9,9 @@ import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.util.getOrAwaitValue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
+import org.junit.After
 import org.junit.Before
-import org.junit.jupiter.api.Test
+import org.junit.Test
 import org.junit.runner.RunWith
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.core.context.stopKoin
@@ -18,9 +19,11 @@ import org.koin.dsl.module
 import org.koin.java.KoinJavaComponent
 import org.koin.test.KoinTest
 import org.koin.test.get
+import org.robolectric.annotation.Config
 
 @RunWith(AndroidJUnit4::class)
 @ExperimentalCoroutinesApi
+@Config(sdk = [30])
 class RemindersListViewModelTest : KoinTest {
 
     private lateinit var appContext: Application
@@ -36,7 +39,7 @@ class RemindersListViewModelTest : KoinTest {
 
     @Before
     fun init() {
-        stopKoin()//stop the original app koin
+
         appContext = ApplicationProvider.getApplicationContext()
 
         val myModule = module {
@@ -45,6 +48,7 @@ class RemindersListViewModelTest : KoinTest {
             single { reminders }
         }
 
+        stopKoin() //stop the original app koin  // Should remove the error: A Koin Application has already been started
         // Declare a new koin module
         org.koin.core.context.GlobalContext.startKoin {
             modules(listOf(myModule))
@@ -55,12 +59,18 @@ class RemindersListViewModelTest : KoinTest {
 
     }
 
+    @After
+    fun end() {
+        stopKoin()
+    }
+
     // We create a fake reminder and save it to the repository. Then we load the reminders from the db and check if the list is not empty.
-    // FLAKY TEST
     @Test
     fun viewModel_getReminder() = runTest {
         val reminder = ReminderDTO("title", "description", "location", 0.0, 0.0)
         fdataSource.saveReminder(reminder)
+
+
         viewModel.loadReminders()
         assert(viewModel.remindersList.getOrAwaitValue() != null)
 

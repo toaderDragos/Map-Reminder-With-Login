@@ -1,6 +1,7 @@
 package com.udacity.project4.locationreminders.savereminder
 
 import android.Manifest
+import android.app.Activity
 import android.app.PendingIntent
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -86,7 +87,6 @@ class SaveReminderFragment : BaseFragment() {
                     )
                         .show()
                 } else {
-
                     checkPermissionsAndAddGeofence(id, latitude, longitude)
                     // return@setOnClickListener
                     // Get geofence from user input
@@ -112,14 +112,13 @@ class SaveReminderFragment : BaseFragment() {
     }
 
     fun checkPermissionsAndAddGeofence(id: String, latitude: Double, longitude: Double) {
-        if (ActivityCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
+        if (context?.let {
+                ActivityCompat.checkSelfPermission(it, Manifest.permission.ACCESS_FINE_LOCATION)
+            } != PackageManager.PERMISSION_GRANTED
         ) {
             // Request the ACCESS_FINE_LOCATION permission
             ActivityCompat.requestPermissions(
-                requireActivity(),
+                context as Activity,
                 arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
                 PERMISSION_REQUEST_FINE_LOCATION
             )

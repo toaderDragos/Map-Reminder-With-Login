@@ -30,7 +30,6 @@ class FragmentUpdateOrDelete : BaseFragment() {
 
     private lateinit var geofencingClient: GeofencingClient
 
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -57,9 +56,13 @@ class FragmentUpdateOrDelete : BaseFragment() {
         // TO DO - check if this works for real!!
         val reminderData = navigationArgs.reminderItem
         binding.lifecycleOwner = this
+
+        // Let's pre - populate this fragment with the data from the reminder that was selected
+//        binding.reminderTitle.hint = reminderData.title.toString()
+//        binding.reminderDescription.hint = reminderData.description.toString()
+
         // takes you to the map fragment to select location
         binding.selectLocation.setOnClickListener {
-
             // Remove old geofence - I do this here because this is the moment the user wants to change the location.
             removeGeofenceById(reminderData.id)
 
@@ -70,12 +73,13 @@ class FragmentUpdateOrDelete : BaseFragment() {
                 )
         }
 
-        // The main part of this file is the update and delete buttons
+        // these are the fields that were received from the reminders List - I should take them from the newly created entries
         binding.updateReminder.setOnClickListener {
             // Code to handle update
-            val title = _viewModel.reminderTitle.value
-            val description = _viewModel.reminderDescription.value
-            val location = _viewModel.reminderSelectedLocationStr.value
+            val title = binding.reminderTitle.text.toString()
+            val description = binding.reminderDescription.text.toString()
+            val location =
+                _viewModel.reminderSelectedLocationStr.value        // These values are saved here by the SelectLocationFragment
             val latitude = _viewModel.latitude.value
             val longitude = _viewModel.longitude.value
             val id = UUID.randomUUID().toString()

@@ -1,6 +1,7 @@
 package com.udacity.project4.locationreminders.reminderslist
 
 import android.app.Application
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.udacity.project4.locationreminders.data.FakeDataSource
@@ -11,6 +12,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.koin.androidx.viewmodel.dsl.viewModel
@@ -35,7 +37,9 @@ class RemindersListViewModelTest : KoinTest {
     // Inject the ViewModel
     private val viewModel: RemindersListViewModel by KoinJavaComponent.inject(RemindersListViewModel::class.java)
 
-    private val reminders = viewModel.remindersList.getOrAwaitValue()
+    // Executes each task synchronously using Architecture Components.
+    @get:Rule
+    var instantTaskExecutorRule = InstantTaskExecutorRule()
 
     @Before
     fun init() {
@@ -43,9 +47,9 @@ class RemindersListViewModelTest : KoinTest {
         appContext = ApplicationProvider.getApplicationContext()
 
         val myModule = module {
+            single { FakeDataSource(mutableListOf()) as ReminderDataSource }
             viewModel { RemindersListViewModel(appContext, get()) }
-            single { FakeDataSource(get()) as ReminderDataSource }
-            single { reminders }
+
         }
 
         stopKoin() //stop the original app koin  // Should remove the error: A Koin Application has already been started
@@ -69,7 +73,6 @@ class RemindersListViewModelTest : KoinTest {
     fun viewModel_getReminder() = runTest {
         val reminder = ReminderDTO("title", "description", "location", 0.0, 0.0)
         fdataSource.saveReminder(reminder)
-
 
         viewModel.loadReminders()
         assert(viewModel.remindersList.getOrAwaitValue() != null)

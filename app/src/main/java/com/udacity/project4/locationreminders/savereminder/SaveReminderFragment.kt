@@ -88,26 +88,25 @@ class SaveReminderFragment : BaseFragment() {
                         .show()
                 } else {
                     checkPermissionsAndAddGeofence(id, latitude, longitude)
-                    // return@setOnClickListener
-                    // Get geofence from user input
+
                     reminderData =
                         ReminderDataItem(title, description, location, latitude, longitude, id)
-                    // Add reminder to local db
 
+                    // Add reminder to local db
                     _viewModel.validateAndSaveReminder(reminderData)
+
                     // Navigate back to the reminders list
                     findNavController().navigate(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())
                 }
-
             } else {
                 // If there is no location added, then the user can't add a geofence
                 Toast.makeText(
                     context,
                     getString(R.string.please_select_a_location),
                     Toast.LENGTH_SHORT
-                ).show()
+                )
+                    .show()
             }
-
         }
     }
 

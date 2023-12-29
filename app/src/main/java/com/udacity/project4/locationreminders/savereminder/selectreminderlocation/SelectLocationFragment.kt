@@ -60,7 +60,10 @@ class SelectLocationFragment: Fragment() {
 
         // The user already selected a POI and the data is already sent to the viewmodel
         binding.saveLocationButton.setOnClickListener {
-            findNavController().navigate(SelectLocationFragmentDirections.actionSelectLocationFragmentToSaveReminderFragment())
+
+            // navigate back to the previous fragment to save the reminder and add the geofence
+            findNavController().popBackStack()
+            // findNavController().navigate(SelectLocationFragmentDirections.actionSelectLocationFragmentToSaveReminderFragment())
         }
 
         // Implementation

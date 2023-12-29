@@ -8,6 +8,7 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import com.firebase.ui.auth.AuthUI
 import com.udacity.project4.R
@@ -26,8 +27,11 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class ReminderListFragment : BaseFragment() {
     // use Koin to retrieve the ViewModel instance
+
+
     override val _viewModel: RemindersListViewModel by viewModel()
     private lateinit var binding: FragmentRemindersBinding
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -54,12 +58,18 @@ class ReminderListFragment : BaseFragment() {
         binding.addReminderFAB.setOnClickListener {
             navigateToAddReminder()
         }
+
+        // Observe the messages sent by different parts of the app, otherwise they have a weird behaviour and latency
+        observeToastMessage()
+
     }
 
     override fun onResume() {
         super.onResume()
         // load the reminders list on the ui
         _viewModel.loadReminders()
+        // Maybe it just auto refreshes the list
+        setupRecyclerView()
     }
 
     private fun navigateToAddReminder() {
@@ -81,7 +91,7 @@ class ReminderListFragment : BaseFragment() {
                 )
             )
         }
-
+        adapter.notifyDataSetChanged()
         // Setup the recycler view using the extension function
         binding.reminderssRecyclerView.setup(adapter)
     }
@@ -103,6 +113,15 @@ class ReminderListFragment : BaseFragment() {
         super.onCreateOptionsMenu(menu, inflater)
         //  Display logout as menu item
         inflater.inflate(R.menu.main_menu, menu)
+    }
+
+    private fun observeToastMessage() {
+        _viewModel.showToast.observe(viewLifecycleOwner) { message ->
+            if (message.isNotEmpty()) {
+                Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+                _viewModel.showToast.value = null // Reset the LiveData after showing the toast
+            }
+        }
     }
 
 }

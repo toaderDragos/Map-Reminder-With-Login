@@ -18,6 +18,10 @@ class FakeDataSource(var reminders: MutableList<ReminderDTO> = mutableListOf()) 
         }
     }
 
+    fun setReturnError(value: Boolean) {
+        returnError = value
+    }
+
     override suspend fun saveReminder(reminder: ReminderDTO) {
         reminders.add(reminder)
     }
@@ -41,6 +45,10 @@ class FakeDataSource(var reminders: MutableList<ReminderDTO> = mutableListOf()) 
 
     override suspend fun deleteReminder(id: String) {
         reminders.removeIf { reminder -> reminder.id == id }
+    }
+
+    override suspend fun updateReminder(reminder: ReminderDTO) {
+        reminders
     }
 
 

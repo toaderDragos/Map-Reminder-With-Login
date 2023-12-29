@@ -18,6 +18,7 @@ import kotlinx.coroutines.launch
 
 class SaveReminderViewModel(val app: Application, val dataSource: ReminderDataSource) :
     BaseViewModel(app) {
+
     val reminderTitle = MutableLiveData<String?>()
     val reminderDescription = MutableLiveData<String?>()
     val reminderSelectedLocationStr = MutableLiveData<String?>()
@@ -108,8 +109,19 @@ class SaveReminderViewModel(val app: Application, val dataSource: ReminderDataSo
         return geofencingRequest
     }
 
-    // TO DO Should update the new geofence after the reminder is updated should be fun updateReminderDeleteOldGeofenceAddNewGeofence
-    // TO DO - should find the id of the geofence and delete it then add the new geofence
+    /**
+     * Validate the entered data then updates the reminder data to the DataSource
+     */
+    fun validateAndUpdateReminder(reminderData: ReminderDataItem) {
+        if (validateEnteredData(reminderData)) {
+            updateReminder(reminderData)
+        }
+    }
+
+    /**
+     * The New Geofence gets updated in the fragment. The previous Geofence is deleted in the same place.
+     * Resolve issue with the showToast.value() not working.
+     */
     fun updateReminder(reminderData: ReminderDataItem) {
         viewModelScope.launch {
             val result = dataSource.getReminder(reminderData.id)
@@ -121,17 +133,24 @@ class SaveReminderViewModel(val app: Application, val dataSource: ReminderDataSo
                     it.location = reminderData.location
                     it.latitude = reminderData.latitude
                     it.longitude = reminderData.longitude
-                    dataSource.saveReminder(it)
+
+                    // update the reminder in the DB
+                    dataSource.updateReminder(it)
+
                     // Handle UI updates or navigation
                     showLoading.value = false
                     showToast.value = app.getString(R.string.reminder_updated)
                     navigationCommand.value = NavigationCommand.Back
-                    // notify the list adapter to update the list
 
                 }
             }
         }
     }
+
+    /**
+     * This delete reminder function deletes the entry in the room database.
+     * The associated Geofence was deleted in the Fragment.
+     */
 
     fun deleteReminder(id: String) {
         viewModelScope.launch {
@@ -142,5 +161,7 @@ class SaveReminderViewModel(val app: Application, val dataSource: ReminderDataSo
             navigationCommand.value = NavigationCommand.Back
         }
     }
+
+
 
 }

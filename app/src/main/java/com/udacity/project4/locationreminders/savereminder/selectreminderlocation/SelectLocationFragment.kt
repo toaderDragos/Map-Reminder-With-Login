@@ -63,7 +63,6 @@ class SelectLocationFragment: Fragment() {
 
             // navigate back to the previous fragment to save the reminder and add the geofence
             findNavController().popBackStack()
-            // findNavController().navigate(SelectLocationFragmentDirections.actionSelectLocationFragmentToSaveReminderFragment())
         }
 
         // Implementation
@@ -132,7 +131,24 @@ class SelectLocationFragment: Fragment() {
         }
     }
 
-    private fun passPoiInfoToViewModel(latAndLng: LatLng, currentPOI: PointOfInterest, name: String) {
+    /**
+     * There are 2 sets of LiveData - one for saving a reminder and another for updating a reminder.
+     * It solves multiple confusions and conflicts splitting them into 2 sets.
+     */
+    private fun passPoiInfoToViewModel(
+        latAndLng: LatLng,
+        currentPOI: PointOfInterest,
+        name: String
+    ) {
+        if (_viewModel.saveLocationButtonClickedFromUpdateOrDelete.value == true) {
+            _viewModel.updatedReminderSelectedLocationStr.value = name
+            _viewModel.updatedLatitude.value = latAndLng.latitude
+            _viewModel.updatedLongitude.value = latAndLng.longitude
+            // reset the value to false so that the user can select a new location
+            _viewModel.saveLocationButtonClickedFromUpdateOrDelete.value = false
+            println(" dra Updated location in select location fragment: $name")
+            return
+        }
         _viewModel.reminderSelectedLocationStr.value = name
         _viewModel.selectedPOI.value = currentPOI
         _viewModel.longitude.value = latAndLng.longitude

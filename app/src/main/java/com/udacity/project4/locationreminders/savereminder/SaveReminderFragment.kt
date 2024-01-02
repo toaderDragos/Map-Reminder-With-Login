@@ -62,10 +62,14 @@ class SaveReminderFragment : BaseFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.lifecycleOwner = this
+
         binding.selectLocation.setOnClickListener {
+            _viewModel.saveLocationButtonClickedFromUpdateOrDelete.value = false
             _viewModel.navigationCommand.value = NavigationCommand
-                .To(SaveReminderFragmentDirections
-                    .actionSaveReminderFragmentToSelectLocationFragment())
+                .To(
+                    SaveReminderFragmentDirections
+                        .actionSaveReminderFragmentToSelectLocationFragment()
+                )
         }
 
         binding.saveReminder.setOnClickListener {
@@ -84,8 +88,7 @@ class SaveReminderFragment : BaseFragment() {
                         context,
                         getString(R.string.please_fill_out_the_title),
                         Toast.LENGTH_SHORT
-                    )
-                        .show()
+                    ).show()
                 } else {
                     checkPermissionsAndAddGeofence(id, latitude, longitude)
 
@@ -97,6 +100,7 @@ class SaveReminderFragment : BaseFragment() {
 
                     // Navigate back to the reminders list
                     findNavController().navigate(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())
+
                 }
             } else {
                 // If there is no location added, then the user can't add a geofence
@@ -104,8 +108,7 @@ class SaveReminderFragment : BaseFragment() {
                     context,
                     getString(R.string.please_select_a_location),
                     Toast.LENGTH_SHORT
-                )
-                    .show()
+                ).show()
             }
         }
     }
@@ -139,8 +142,7 @@ class SaveReminderFragment : BaseFragment() {
                         context,
                         getString(R.string.error_in_adding_geofence),
                         Toast.LENGTH_SHORT
-                    )
-                        .show()
+                    ).show()
                 }
             }
         }

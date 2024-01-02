@@ -8,7 +8,6 @@ import com.google.android.gms.location.GeofencingRequest
 import com.google.android.gms.maps.model.PointOfInterest
 import com.udacity.project4.R
 import com.udacity.project4.base.BaseViewModel
-import com.udacity.project4.base.NavigationCommand
 import com.udacity.project4.locationreminders.data.ReminderDataSource
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.data.dto.Result
@@ -25,6 +24,12 @@ class SaveReminderViewModel(val app: Application, val dataSource: ReminderDataSo
     val selectedPOI = MutableLiveData<PointOfInterest?>()
     val latitude = MutableLiveData<Double?>()
     val longitude = MutableLiveData<Double?>()
+
+    val saveLocationButtonClickedFromUpdateOrDelete = MutableLiveData<Boolean>()
+
+    val updatedReminderSelectedLocationStr = MutableLiveData<String?>()
+    val updatedLatitude = MutableLiveData<Double?>()
+    val updatedLongitude = MutableLiveData<Double?>()
 
 
     /**
@@ -66,7 +71,8 @@ class SaveReminderViewModel(val app: Application, val dataSource: ReminderDataSo
             )
             showLoading.value = false
             showToast.value = app.getString(R.string.reminder_saved)
-            navigationCommand.value = NavigationCommand.Back
+            // Deleting the livedata objects
+            onClear()
         }
     }
 
@@ -122,7 +128,7 @@ class SaveReminderViewModel(val app: Application, val dataSource: ReminderDataSo
      * The New Geofence gets updated in the fragment. The previous Geofence is deleted in the same place.
      * Resolve issue with the showToast.value() not working.
      */
-    fun updateReminder(reminderData: ReminderDataItem) {
+    private fun updateReminder(reminderData: ReminderDataItem) {
         viewModelScope.launch {
             val result = dataSource.getReminder(reminderData.id)
             if (result is Result.Success<ReminderDTO>) {
@@ -140,8 +146,7 @@ class SaveReminderViewModel(val app: Application, val dataSource: ReminderDataSo
                     // Handle UI updates or navigation
                     showLoading.value = false
                     showToast.value = app.getString(R.string.reminder_updated)
-                    navigationCommand.value = NavigationCommand.Back
-
+//                    navigationCommand.value = NavigationCommand.Back
                 }
             }
         }
@@ -158,7 +163,7 @@ class SaveReminderViewModel(val app: Application, val dataSource: ReminderDataSo
             // Handle UI updates or navigation
             showLoading.value = false
             showToast.value = app.getString(R.string.reminder_deleted)
-            navigationCommand.value = NavigationCommand.Back
+            // navigationCommand.value = NavigationCommand.Back
         }
     }
 

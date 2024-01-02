@@ -30,6 +30,10 @@ class FragmentUpdateOrDelete : BaseFragment() {
     private val navigationArgs: FragmentUpdateOrDeleteArgs by navArgs()
     override val _viewModel: SaveReminderViewModel by inject()
     private lateinit var binding: FragmentUpdateOrDeleteReminderBinding
+    private lateinit var location: String
+    private var latitude: Double? = null
+    private var longitude: Double? = null
+
 
     // I add a geofencing client so I can update the geofence
     private val geofencePendingIntent: PendingIntent by lazy {
@@ -59,39 +63,52 @@ class FragmentUpdateOrDelete : BaseFragment() {
         return binding.root
     }
 
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         // Populate UI with existing reminder data
-        // TO DO - check if this works for real!!
         val reminderData = navigationArgs.reminderItem
         binding.lifecycleOwner = this
 
-        // Set the actual text of the EditText fields
+        // Set the actual text of the EditText fields and location
         binding.reminderTitle.setText(reminderData.title)
         binding.reminderDescription.setText(reminderData.description)
 
-        // takes you to the map fragment to select location
+        _viewModel.updatedReminderSelectedLocationStr.value = reminderData.location
+        // I set the location from the viewmodel- this binding is already done in the XML
+        // binding.selectedLocation.text = _viewModel.updatedReminderSelectedLocationStr.value
+        println("Dra The location is: ${reminderData.location}")
+
+        //    Observe the live data object _viewModel.reminderSelectedLocationStr.value and update the UI // Observe
+//        _viewModel.reminderSelectedLocationStr.observe(viewLifecycleOwner) {
+//            binding.selectedLocation.text = it
+//        }
+
+        /**
+         * Takes you to the map fragment so you can save the location
+         * It removes the old geofence and saves the information through the viewModel.
+         * The live datas are updated in the viewModel and then they are assigned here. They are destined for this purpose only.
+         */
         binding.selectLocation.setOnClickListener {
             // Remove old geofence - I do this here because this is the moment the user wants to CHANGE the location.
             removeGeofenceById(reminderData.id)
-
+            _viewModel.saveLocationButtonClickedFromUpdateOrDelete.value = true
             _viewModel.navigationCommand.value = NavigationCommand
                 .To(FragmentUpdateOrDeleteDirections.actionFragmentUpdateOrDeleteToSelectLocationFragment())
         }
 
-        // these are the fields that were received from the reminders List - I should take them from the newly created entries
+
+        // Let's take the info for location directly from viewmodel - it's already there
         binding.updateReminder.setOnClickListener {
-            // Code to handle update
+
             val title = binding.reminderTitle.text.toString()
             val description = binding.reminderDescription.text.toString()
-            val location =
-                _viewModel.reminderSelectedLocationStr.value        // These values are saved here by the SelectLocationFragment
-            val latitude = _viewModel.latitude.value
-            val longitude = _viewModel.longitude.value
-            val id = reminderData.id
+            location = _viewModel.updatedReminderSelectedLocationStr.value.toString()
+            latitude = _viewModel.updatedLatitude.value
+            longitude = _viewModel.updatedLongitude.value
 
-            if (title.isNullOrEmpty()) {
+            val id = reminderData.id
+            
+            if (title.isEmpty()) {
                 Toast.makeText(
                     context,
                     getString(R.string.please_fill_out_the_title),
@@ -104,7 +121,7 @@ class FragmentUpdateOrDelete : BaseFragment() {
                 // Get geofence from user input and add geofence
                 if (latitude != null && longitude != null) {
                     // Add new geofence
-                    checkPermissionsAndAddGeofence(id, latitude, longitude)
+                    checkPermissionsAndAddGeofence(id, latitude!!, longitude!!)
                 }
                 // Create new reminder data item
                 val newReminderData =

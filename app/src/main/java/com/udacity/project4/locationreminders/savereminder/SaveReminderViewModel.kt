@@ -26,7 +26,6 @@ class SaveReminderViewModel(val app: Application, val dataSource: ReminderDataSo
     val longitude = MutableLiveData<Double?>()
 
     val saveLocationButtonClickedFromUpdateOrDelete = MutableLiveData<Boolean>()
-
     val updatedReminderSelectedLocationStr = MutableLiveData<String?>()
     val updatedLatitude = MutableLiveData<Double?>()
     val updatedLongitude = MutableLiveData<Double?>()
@@ -42,6 +41,9 @@ class SaveReminderViewModel(val app: Application, val dataSource: ReminderDataSo
         selectedPOI.value = null
         latitude.value = null
         longitude.value = null
+        updatedReminderSelectedLocationStr.value = null
+        updatedLatitude.value = null
+        updatedLongitude.value = null
     }
 
     /**
@@ -146,7 +148,8 @@ class SaveReminderViewModel(val app: Application, val dataSource: ReminderDataSo
                     // Handle UI updates or navigation
                     showLoading.value = false
                     showToast.value = app.getString(R.string.reminder_updated)
-//                    navigationCommand.value = NavigationCommand.Back
+                    onClear()
+
                 }
             }
         }

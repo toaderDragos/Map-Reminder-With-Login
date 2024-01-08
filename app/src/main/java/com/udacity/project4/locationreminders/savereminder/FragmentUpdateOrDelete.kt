@@ -73,15 +73,9 @@ class FragmentUpdateOrDelete : BaseFragment() {
         binding.reminderTitle.setText(reminderData.title)
         binding.reminderDescription.setText(reminderData.description)
 
-        _viewModel.updatedReminderSelectedLocationStr.value = reminderData.location
-        // I set the location from the viewmodel- this binding is already done in the XML
-        // binding.selectedLocation.text = _viewModel.updatedReminderSelectedLocationStr.value
-        println("Dra The location is: ${reminderData.location}")
-
-        //    Observe the live data object _viewModel.reminderSelectedLocationStr.value and update the UI // Observe
-//        _viewModel.reminderSelectedLocationStr.observe(viewLifecycleOwner) {
-//            binding.selectedLocation.text = it
-//        }
+        // I set the location from the viewModel- this binding is already done in the XML
+        // Saving the location in a variable and then assigning it to the viewModel onStart
+        location = reminderData.location.toString()
 
         /**
          * Takes you to the map fragment so you can save the location
@@ -102,12 +96,13 @@ class FragmentUpdateOrDelete : BaseFragment() {
 
             val title = binding.reminderTitle.text.toString()
             val description = binding.reminderDescription.text.toString()
-            location = _viewModel.updatedReminderSelectedLocationStr.value.toString()
+            location =
+                _viewModel.updatedReminderSelectedLocationStr.value.toString()       // THis location is UNCHANGED - ERROR
             latitude = _viewModel.updatedLatitude.value
             longitude = _viewModel.updatedLongitude.value
-
+            // println("dra after I click update reminder i have this location: ${_viewModel.updatedReminderSelectedLocationStr.value.toString()} ")
             val id = reminderData.id
-            
+
             if (title.isEmpty()) {
                 Toast.makeText(
                     context,
@@ -143,6 +138,15 @@ class FragmentUpdateOrDelete : BaseFragment() {
             removeGeofenceById(reminderData.id)
             findNavController().navigate(FragmentUpdateOrDeleteDirections.actionFragmentUpdateOrDeleteToReminderListFragment())
         }
+    }
+
+
+    override fun onResume() {
+        super.onResume()
+        // I set the location from the viewmodel- this binding is already done in the XML
+        binding.selectedLocation.text = _viewModel.updatedReminderSelectedLocationStr.value
+        val log1 = _viewModel.updatedReminderSelectedLocationStr.value
+        println("dra Updated location in returning from Save Location is: $log1")
     }
 
     private fun removeGeofenceById(geofenceId: String) {

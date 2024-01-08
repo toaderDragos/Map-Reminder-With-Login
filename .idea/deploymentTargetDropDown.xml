@@ -2,7 +2,19 @@
 <project version="4">
   <component name="deploymentTargetDropDown">
     <value>
+      <entry key="ReminderListFragmentTest">
+        <State />
+      </entry>
       <entry key="app">
+        <State />
+      </entry>
+      <entry key="clickAddReminderButton_navigatesToAddReminderFragment()">
+        <State />
+      </entry>
+      <entry key="loadReminders_Should_Update_remindersList_on_success()">
+        <State />
+      </entry>
+      <entry key="noReminderDisplayed()">
         <State />
       </entry>
     </value>

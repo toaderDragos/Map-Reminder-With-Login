@@ -146,7 +146,9 @@ class SelectLocationFragment: Fragment() {
             _viewModel.updatedLongitude.value = latAndLng.longitude
             // reset the value to false so that the user can select a new location
             _viewModel.saveLocationButtonClickedFromUpdateOrDelete.value = false
-            println(" dra Updated location in select location fragment: $name")
+
+            val log2 = _viewModel.updatedReminderSelectedLocationStr.value
+            println("dra Updated location in Select Location fragment: $log2 ")
             return
         }
         _viewModel.reminderSelectedLocationStr.value = name

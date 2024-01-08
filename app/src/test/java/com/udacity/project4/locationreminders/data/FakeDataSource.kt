@@ -48,7 +48,10 @@ class FakeDataSource(var reminders: MutableList<ReminderDTO> = mutableListOf()) 
     }
 
     override suspend fun updateReminder(reminder: ReminderDTO) {
-        reminders
+        // Find the index of the reminder to be updated
+        val index = reminders.indexOfFirst { it.id == reminder.id }
+        // Update the reminder
+        reminders[index] = reminder
     }
 
 

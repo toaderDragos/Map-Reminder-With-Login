@@ -60,9 +60,9 @@ android {
         }
     }
 
-    packagingOptions {
-        exclude 'mockito-extensions/org.mockito.plugins.MockMaker'
-    }
+//    packagingOptions {
+//        exclude 'mockito-extensions/org.mockito.plugins.MockMaker'
+//    }
 }
 
 dependencies {
@@ -138,7 +138,6 @@ dependencies {
 
     // AndroidX Test - Instrumented testing
     androidTestImplementation "androidx.test:core-ktx:$androidXTestCoreVersion"
-
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion"
     androidTestImplementation "androidx.test:rules:$androidXTestRulesVersion"
@@ -150,16 +149,19 @@ dependencies {
     androidTestImplementation "androidx.test.espresso:espresso-intents:$espressoVersion"
     androidTestImplementation "androidx.test.espresso.idling:idling-concurrent:$espressoVersion"
     androidTestImplementation "junit:junit:$junitVersion"
-    androidTestImplementation "org.mockito:mockito-android:5.4.0"
+    // androidTestImplementation "org.mockito:mockito-android:5.4.0"
     androidTestImplementation 'androidx.test.espresso:espresso-idling-resource:3.5.1'
+    androidTestImplementation "io.insert-koin:koin-test:$koinVersion"
+    androidTestImplementation "io.insert-koin:koin-test-junit4:$koinVersion"
+
 
     // Once https://issuetracker.google.com/127986458 is fixed this can be testImplementation
     debugImplementation "androidx.fragment:fragment-testing:$fragmentVersion"
     implementation "androidx.test:core:$androidXTestCoreVersion"
     implementation "androidx.fragment:fragment:$fragmentVersion"
-    // androidTestImplementation "org.mockito:mockito-core:$mockitoVersion"
+
     androidTestImplementation "com.linkedin.dexmaker:dexmaker-mockito:$dexMakerVersion"
-    // androidTestImplementation('org.koin:koin-test:3.4.3') { exclude group: 'org.mockito' }
+    androidTestImplementation("io.insert-koin:koin-test:$koinVersion") { exclude group: 'org.mockito' }
 
 
     //Maps & Geofencing
@@ -168,6 +170,5 @@ dependencies {
 
     //Multidex support dependencies
     implementation "androidx.multidex:multidex:2.0.1"
-
 
 }

@@ -49,4 +49,18 @@ class FakeAndroidDataSource (var reminders: MutableList<ReminderDTO> = mutableLi
     override suspend fun deleteReminder(id: String) {
         reminders.removeIf { reminder -> reminder.id == id }
     }
+
+    override suspend fun updateReminder(reminder: ReminderDTO) {
+        val index = reminders.indexOfFirst { it.id == reminder.id }
+        if (index != -1) {
+            // Update the fields of the existing reminder
+            reminders[index].apply {
+                title = reminder.title
+                description = reminder.description
+                location = reminder.location
+                latitude = reminder.latitude
+                longitude = reminder.longitude
+            }
+        }
+    }
 }

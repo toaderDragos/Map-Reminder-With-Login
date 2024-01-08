@@ -86,18 +86,19 @@ class RemindersListViewModelTest {
         assertThat(value, not(nullValue()))
     }
 
-//    // Error handling  // Error: LiveData Value was not set - this test is not working
-    // I have asked on the forums, I have searched the internet - no solution found... yet!
-//    @Test
-//    fun shouldDisplayErrorWhenFailedToLoadReminders() {
-//        fakeDataSource.setReturnError(true)
-//        remindersListViewModel.loadReminders()
-//
-//        val value = remindersListViewModel.remindersList.getOrAwaitValue()
-//        val snackBarErrorMessage = remindersListViewModel.showSnackBar.getOrAwaitValue()
-//        assertThat(value, `is`(nullValue()))
-//        assertThat(snackBarErrorMessage, `is`("Can't load reminders!"))
-//    }
+    // Error handling  // Error: LiveData Value was not set - this test is not working
+    // It was not set because in the original code the livedata was not set and It should be set when the loading fails.
+    @Test
+    fun shouldDisplayErrorWhenFailedToLoadReminders() {
+
+        fakeDataSource.setReturnError(true)
+        remindersListViewModel.loadReminders()
+
+        val value = remindersListViewModel.remindersList.getOrAwaitValue()
+        val snackBarErrorMessage = remindersListViewModel.showSnackBar.getOrAwaitValue()
+        assertThat(value, `is`(emptyList()))
+        assertThat(snackBarErrorMessage, `is`("Can't load reminders!"))
+    }
 
     // Check loading
     @ExperimentalCoroutinesApi

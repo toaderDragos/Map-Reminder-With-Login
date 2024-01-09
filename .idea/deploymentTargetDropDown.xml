@@ -11,10 +11,13 @@
       <entry key="clickAddReminderButton_navigatesToAddReminderFragment()">
         <State />
       </entry>
+      <entry key="create_Reminder_Save_Reminder_Display_Reminder_Update_Reminder_Delete_Reminder()">
+        <State />
+      </entry>
       <entry key="loadReminders_Should_Update_remindersList_on_success()">
         <State />
       </entry>
-      <entry key="noReminderDisplayed()">
+      <entry key="loadReminders_should_show_error_message_on_failure()">
         <State />
       </entry>
     </value>

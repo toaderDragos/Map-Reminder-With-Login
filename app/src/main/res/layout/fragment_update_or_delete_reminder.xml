@@ -79,6 +79,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.5"
+            android:contentDescription="@string/update_the_reminder"
             app:layout_constraintStart_toEndOf="@+id/deleteReminder" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -89,6 +90,7 @@
             app:layout_constraintEnd_toStartOf="@+id/updateReminder"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toStartOf="parent"
+            android:contentDescription="@string/delete_reminder"
             app:layout_constraintTop_toTopOf="@+id/updateReminder" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>

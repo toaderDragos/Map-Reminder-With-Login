@@ -9,7 +9,7 @@
     <string name="save">Save</string>
     <string name="reminder_saved">Reminder Saved!</string>
     <string name="logout">Logout</string>
-    <string name="welcome_to_the_location_reminder_app">Welcome to the location reminder app</string>
+    <string name="welcome_to_the_location_reminder_app">Welcome to the Location Reminder App</string>
     <string name="login">Login</string>
     <string name="title_activity_maps">Map</string>
     <string name="normal_map">Normal Map</string>
@@ -60,4 +60,6 @@
     <string name="reminder_deleted">The reminder was deleted!</string>
     <string name="error_in_deleting_reminder">Error in deleting reminder!</string>
     <string name="error_in_removing_old_geofence">Error - the old location is still active!</string>
+    <string name="update_the_reminder">update the reminder</string>
+    <string name="delete_reminder">delete reminder</string>
 </resources>

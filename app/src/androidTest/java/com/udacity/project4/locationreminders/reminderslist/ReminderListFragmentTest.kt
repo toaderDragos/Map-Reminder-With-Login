@@ -19,6 +19,7 @@ import com.udacity.project4.R
 import com.udacity.project4.locationreminders.data.ReminderDataSource
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.data.local.FakeAndroidDataSource
+import com.udacity.project4.util.getOrAwaitValue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -32,19 +33,18 @@ import org.koin.core.context.stopKoin
 import org.koin.dsl.module
 import org.koin.java.KoinJavaComponent.inject
 import org.koin.test.KoinTest
-
 import org.koin.test.get
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 
 @RunWith(AndroidJUnit4::class)
 @ExperimentalCoroutinesApi
-//UI Testing
+//UI Testing   // Don't forget to test live data with getOrAwaitValue()
 @MediumTest
 class ReminderListFragmentTest : KoinTest {
 
     private lateinit var appContext: Application
-    private lateinit var repository: ReminderDataSource    // This does not look like a repository!!!
+    private lateinit var repository: ReminderDataSource
 
     // Inject the ViewModel
     private val viewModel: RemindersListViewModel by inject(RemindersListViewModel::class.java)
@@ -134,26 +134,25 @@ class ReminderListFragmentTest : KoinTest {
         // When loading reminders
         viewModel.loadReminders()
 
-        // Then the remindersList should be updated
-        assert(viewModel.remindersList.value?.size == 2)
-        assert(viewModel.remindersList.value?.get(0)?.title == "Title 1")
-        assert(viewModel.remindersList.value?.get(1)?.title == "Title 2")
+        // Then the remindersList should be updated - they are LIveData so we should use the getOrAwaitValue() extension function
+        assert(viewModel.remindersList.getOrAwaitValue().size == 2)
+        assert(viewModel.remindersList.getOrAwaitValue()[0].title == "Title 1")
+        assert(viewModel.remindersList.getOrAwaitValue()[1].title == "Title 2")
     }
 
     @Test
     fun loadReminders_should_show_error_message_on_failure() = runTest {
         // Given a failure result from the data source
-        repository.getReminder("invalid_id")
+        (repository as FakeAndroidDataSource).setReturnError(true)
 
         // When loading reminders
         viewModel.loadReminders()
 
         // Then the showSnackBar event should be triggered
-        assert(viewModel.showSnackBar.value != null)
+        assert(viewModel.showSnackBar.getOrAwaitValue() != null)
     }
 
 
-    //
     @Test
     fun noReminderDisplayed() = runTest {
         // GIVEN - On the home screen

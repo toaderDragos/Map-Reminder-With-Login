@@ -72,7 +72,8 @@ class SaveReminderViewModel(val app: Application, val dataSource: ReminderDataSo
                 )
             )
             showLoading.value = false
-            // showToast.value = app.getString(R.string.reminder_saved)  // if you see it in the reminders list, it is saved!
+            showToast.value =
+                app.getString(R.string.reminder_saved)  // if you see it in the reminders list, it is saved!
             // Deleting the livedata objects
             onClear()
         }

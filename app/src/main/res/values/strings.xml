@@ -62,4 +62,9 @@
     <string name="error_in_removing_old_geofence">Error - the old location is still active!</string>
     <string name="update_the_reminder">update the reminder</string>
     <string name="delete_reminder">delete reminder</string>
+    <string name="get_reminded_about_your_tasks_at_the_right_time_and_location">Get reminded about your tasks at the right time and location!</string>
+    <string name="enable_notifications">Enable Notifications</string>
+    <string name="enable">Enable</string>
+    <string name="not_now">Not Now</string>
+    <string name="notification_permission_title">Notification Permission</string>
 </resources>

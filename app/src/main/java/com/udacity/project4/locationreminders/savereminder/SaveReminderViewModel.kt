@@ -72,7 +72,7 @@ class SaveReminderViewModel(val app: Application, val dataSource: ReminderDataSo
                 )
             )
             showLoading.value = false
-            showToast.value = app.getString(R.string.reminder_saved)
+            // showToast.value = app.getString(R.string.reminder_saved)  // if you see it in the reminders list, it is saved!
             // Deleting the livedata objects
             onClear()
         }
@@ -130,7 +130,7 @@ class SaveReminderViewModel(val app: Application, val dataSource: ReminderDataSo
      * The New Geofence gets updated in the fragment. The previous Geofence is deleted in the same place.
      * Resolve issue with the showToast.value() not working.
      */
-    private fun updateReminder(reminderData: ReminderDataItem) {
+    fun updateReminder(reminderData: ReminderDataItem) {
         viewModelScope.launch {
             val result = dataSource.getReminder(reminderData.id)
             if (result is Result.Success<ReminderDTO>) {

@@ -38,14 +38,13 @@ class MyApp : Application() {
                 )
             }
 
-            // RemindersLocalRepository
-//            single<RemindersLocalRepository> {
-//                RemindersLocalRepository(get())
-//            }
-//            // ReminderDataSource
-//            single<ReminderDataSource> {
-//                get<RemindersLocalRepository>()
-//            }
+            single<RemindersLocalRepository> {
+                RemindersLocalRepository(get())
+            }
+            // ReminderDataSource
+            single<ReminderDataSource> {
+                get<RemindersLocalRepository>()
+            }
 
 //             single { RemindersLocalRepository(get()) }
 //            single<ReminderDataSource> { RemindersLocalRepository(get()) }

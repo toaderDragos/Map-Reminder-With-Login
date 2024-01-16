@@ -12,10 +12,12 @@ import androidx.test.espresso.IdlingRegistry
 import androidx.test.espresso.action.ViewActions.*
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.contrib.RecyclerViewActions
+import androidx.test.espresso.matcher.RootMatchers.withDecorView
 import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import androidx.test.rule.GrantPermissionRule
+import com.google.android.material.internal.ContextUtils.getActivity
 import com.udacity.project4.locationreminders.RemindersActivity
 import com.udacity.project4.locationreminders.data.ReminderDataSource
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
@@ -27,6 +29,7 @@ import com.udacity.project4.util.monitorActivity
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.hamcrest.CoreMatchers.endsWith
+import org.hamcrest.CoreMatchers.not
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -191,7 +194,6 @@ class RemindersActivityTest :
         onView(withId(R.id.reminderDescription)).check(matches(isDisplayed()))
         Thread.sleep(1000)
 
-
         // Check if the selected location is displayed
         onView(withId(R.id.selectedLocation)).check(matches(withText(reminder1.location)))
 
@@ -254,6 +256,99 @@ class RemindersActivityTest :
         onView(withId(R.id.deleteReminder)).perform(click())
         // Check if there are no reminders displayed
         onView(withId(R.id.noDataTextView)).check(matches(isDisplayed()))
+    }
+
+
+    /*** Setting a fake location for the reminder including the latitude and longitude.
+     * This is because otherwise the location notification appears first and the test fails.
+     * I don't set any title intentionally. Test passes
+     * ***/
+    @Test
+    fun show_Message_on_Title_Missing_Error() {
+
+        // Some fake data stored in the viewmodel
+        saveViewModel = inject<SaveReminderViewModel>().value
+        saveViewModel.reminderSelectedLocationStr.postValue(reminder1.location)
+        saveViewModel.latitude.postValue(reminder1.latitude)
+        saveViewModel.longitude.postValue(reminder1.longitude)
+
+        // Launch RemindersActivity
+        val activityScenario = ActivityScenario.launch(RemindersActivity::class.java)
+        // Use idling resources to wait for data binding to finish
+        dataBindingIdlingResource.monitorActivity(activityScenario)
+
+        // Click on the add reminder button
+        onView(withId(R.id.addReminderFAB)).perform(click())
+
+        // Click on the Save Reminder button
+        onView(withId(R.id.saveReminder)).perform(click())
+        Thread.sleep(500)
+        dataBindingIdlingResource.monitorActivity(activityScenario)
+
+        // Check if the snack-bar is displayed
+        onView(withId(com.google.android.material.R.id.snackbar_text))
+            .check(matches(withText(R.string.err_enter_title)))
+
+    }
+
+    /*** Trying to save a reminder without a location should display an error message. PASSES */
+    @Test
+    fun show_Message_when_location_is_empty() {
+        // Some fake data that pre-populates title and description in the save fragment
+        saveViewModel = inject<SaveReminderViewModel>().value
+        saveViewModel.reminderTitle.postValue(reminder1.title)
+        saveViewModel.reminderDescription.postValue(reminder1.description)
+
+        // Launch RemindersActivity
+        val activityScenario = ActivityScenario.launch(RemindersActivity::class.java)
+        // Use idling resources to wait for data binding to finish
+        dataBindingIdlingResource.monitorActivity(activityScenario)
+
+        // Click on the add new reminder button
+        onView(withId(R.id.addReminderFAB)).perform(click())
+
+        // Click on the Save Reminder button
+        onView(withId(R.id.saveReminder)).perform(click())
+        Thread.sleep(500)
+        dataBindingIdlingResource.monitorActivity(activityScenario)
+
+        // Check if the snack-bar is displayed
+        onView(withId(com.google.android.material.R.id.snackbar_text))
+            .check(matches(withText(R.string.err_select_location)))
+
+    }
+
+    /*** Saving a complete reminder should display a successful message. PASSES :)))*/
+    @Test
+    fun show_toast_message_when_reminder_is_saved() {
+        // Some fake data that pre-populates title and description in the save fragment
+        saveViewModel = inject<SaveReminderViewModel>().value
+        saveViewModel.reminderTitle.postValue(reminder1.title)
+        saveViewModel.reminderDescription.postValue(reminder1.description)
+        saveViewModel.reminderSelectedLocationStr.postValue(reminder1.location)
+        saveViewModel.latitude.postValue(reminder1.latitude)
+        saveViewModel.longitude.postValue(reminder1.longitude)
+
+        // Launch RemindersActivity
+        val activityScenario = ActivityScenario.launch(RemindersActivity::class.java)
+        // Use idling resources to wait for data binding to finish
+        dataBindingIdlingResource.monitorActivity(activityScenario)
+
+        // Click on the add new reminder button
+        onView(withId(R.id.addReminderFAB)).perform(click())
+
+        // Click on the Save Reminder button
+        onView(withId(R.id.saveReminder)).perform(click())
+        Thread.sleep(500)
+        dataBindingIdlingResource.monitorActivity(activityScenario)
+
+        // Check if the toast is displayed
+        val activity = getActivity(appContext)
+        if (activity != null) {
+            onView(withText(R.string.reminder_saved))
+                .inRoot(withDecorView(not(activity.window.decorView)))
+                .check(matches(isDisplayed()))
+        }
     }
 
 

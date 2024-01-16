@@ -8,16 +8,10 @@
       <entry key="app">
         <State />
       </entry>
-      <entry key="clickAddReminderButton_navigatesToAddReminderFragment()">
+      <entry key="show_Message_when_reminder_is_saved()">
         <State />
       </entry>
-      <entry key="create_Reminder_Save_Reminder_Display_Reminder_Update_Reminder_Delete_Reminder()">
-        <State />
-      </entry>
-      <entry key="loadReminders_Should_Update_remindersList_on_success()">
-        <State />
-      </entry>
-      <entry key="loadReminders_should_show_error_message_on_failure()">
+      <entry key="show_toast_message_when_reminder_is_saved()">
         <State />
       </entry>
     </value>

@@ -2,7 +2,9 @@ package com.udacity.project4.locationreminders.geofence
 
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.core.app.JobIntentService
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofenceStatusCodes
@@ -38,15 +40,12 @@ class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
 
         //  Call this to start the JobIntentService to handle the geofencing transition events
         fun enqueueWork(context: Context, intent: Intent) {
-            enqueueWork(
-                context,
-                GeofenceTransitionsJobIntentService::class.java, JOB_ID,
-                intent
-            )
+            enqueueWork(context, GeofenceTransitionsJobIntentService::class.java, JOB_ID, intent)
         }
     }
 
     // This was at the onReceive() method in GeoFences Starter file - at the Broadcast Receiver
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onHandleWork(intent: Intent) {
         if (intent.action == ACTION_GEOFENCE_EVENT) {
             val geofencingEvent = GeofencingEvent.fromIntent(intent)
@@ -75,6 +74,7 @@ class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun sendNotification(triggeringGeofences: List<Geofence>) {
 
         // Get the local repository instance
@@ -92,7 +92,7 @@ class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
                 if (result is Result.Success<ReminderDTO>) {
                     val reminderDTO = result.data
                     // send a notification to the user with the reminder details
-                    println("La notificacia esta pornida!! che inseamne che s-a gasit geofensu!")
+                    println("dra La notificacia esta pornida!! che inseamne che s-a gasit geofensu!")
                     sendNotification(
                         this@GeofenceTransitionsJobIntentService, ReminderDataItem(
                             reminderDTO.title,

@@ -67,4 +67,5 @@
     <string name="enable">Enable</string>
     <string name="not_now">Not Now</string>
     <string name="notification_permission_title">Notification Permission</string>
+    <string name="notification_permission_toast">Notifications are essential to the app\'s functionality</string>
 </resources>

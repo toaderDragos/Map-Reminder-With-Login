@@ -1,7 +1,7 @@
 package com.udacity.project4.locationreminders.savereminder.selectreminderlocation
 
 import android.Manifest
-import android.annotation.TargetApi
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.IntentSender
 import android.content.pm.PackageManager
@@ -33,8 +33,8 @@ import com.udacity.project4.databinding.FragmentSelectLocationBinding
 import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
 import org.koin.android.ext.android.inject
+import java.util.Locale
 
-private const val REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE = 33
 private const val REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE = 34
 private const val REQUEST_TURN_DEVICE_LOCATION_ON = 29
 
@@ -81,9 +81,10 @@ class SelectLocationFragment: Fragment() {
 
             // For checking everything and showing a move to my location and zooming on my location
             checkAll3LocationPermissions()
-            enableMyLocation()
+
             setHasOptionsMenu(true)
             setDisplayHomeAsUpEnabled(true)
+            setMapLongClick(googleMap)
             setPoiClick(googleMap)
             setMapStyle(googleMap)
 
@@ -91,30 +92,26 @@ class SelectLocationFragment: Fragment() {
         return binding.root
     }
 
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        inflater.inflate(R.menu.map_options, menu)
-    }
-
-    // Called whenever an item in your options menu is selected.
-    override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
-        // Change the map type based on the user's selection.
-        R.id.normal_map -> {
-            googleMap.mapType = GoogleMap.MAP_TYPE_NORMAL
-            true
+    private fun setMapLongClick(map: GoogleMap) {
+        map.setOnMapLongClickListener { latLng ->
+            // A Snippet is Additional text that's displayed below the title.
+            val snippet = String.format(
+                Locale.getDefault(),
+                "Lat: %1$.5f, Long: %2$.5f",
+                latLng.latitude,
+                latLng.longitude
+            )
+            map.addMarker(
+                MarkerOptions()
+                    .position(latLng)
+                    .title(getString(R.string.dropped_pin))
+                    .snippet(snippet)
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW))
+            )
+            // create a Poi object
+            val poi = PointOfInterest(latLng, "Dropped Pin", snippet)
+            passPoiInfoToViewModel(latLng, poi, "Dropped Pin")
         }
-        R.id.hybrid_map -> {
-            googleMap.mapType = GoogleMap.MAP_TYPE_HYBRID
-            true
-        }
-        R.id.satellite_map -> {
-            googleMap.mapType = GoogleMap.MAP_TYPE_SATELLITE
-            true
-        }
-        R.id.terrain_map -> {
-            googleMap.mapType = GoogleMap.MAP_TYPE_TERRAIN
-            true
-        }
-        else -> super.onOptionsItemSelected(item)
     }
 
     // Places a marker on the map and displays an info window that contains POI name.
@@ -170,31 +167,34 @@ class SelectLocationFragment: Fragment() {
 
     // Checks that users have given permission
     private fun isPermissionGranted() : Boolean {
-        return context?.let {
-            ContextCompat.checkSelfPermission(it, Manifest.permission.ACCESS_FINE_LOCATION)
-        } === PackageManager.PERMISSION_GRANTED
+        return ContextCompat.checkSelfPermission(
+            requireContext(),
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ) === PackageManager.PERMISSION_GRANTED
     }
 
     // Checks if users have given their location and sets location enabled if so.
     private fun enableMyLocation() {
         if (isPermissionGranted()) {
-            if (context?.let {
-                    ActivityCompat.checkSelfPermission(it, Manifest.permission.ACCESS_FINE_LOCATION)
-                } != PackageManager.PERMISSION_GRANTED && context?.let {
-                    ActivityCompat.checkSelfPermission(it, Manifest.permission.ACCESS_COARSE_LOCATION)
-                } != PackageManager.PERMISSION_GRANTED
+            if (ActivityCompat.checkSelfPermission(
+                    requireContext(),
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                    requireContext(),
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED
             ) {
+                ActivityCompat.requestPermissions(
+                    context as Activity,
+                    arrayOf(
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    ),
+                    REQUEST_LOCATION_PERMISSION
+                )
                 return
             }
             googleMap.isMyLocationEnabled = true
-        }
-        else {
-            Toast.makeText(context, "App needs permissions to run!", Toast.LENGTH_LONG).show()
-            ActivityCompat.requestPermissions(
-                context as Activity,
-                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION),
-                REQUEST_LOCATION_PERMISSION
-            )
         }
     }
 
@@ -220,7 +220,12 @@ class SelectLocationFragment: Fragment() {
                 )
             )
             val cameraPosition = CameraPosition.Builder()
-                .target(LatLng(location.latitude, location.longitude)) // Sets the center of the map to location user
+                .target(
+                    LatLng(
+                        location.latitude,
+                        location.longitude
+                    )
+                ) // Sets the center of the map to location user
                 .zoom(17f)    // Sets the zoom
                 .bearing(90f) // Sets the orientation of the camera to east
                 .tilt(40f)    // Sets the tilt of the camera to 40 degrees
@@ -229,14 +234,44 @@ class SelectLocationFragment: Fragment() {
         }
     }
 
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.map_options, menu)
+    }
+
+    // Called whenever an item in your options menu is selected.
+    override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
+        // Change the map type based on the user's selection.
+        R.id.normal_map -> {
+            googleMap.mapType = GoogleMap.MAP_TYPE_NORMAL
+            true
+        }
+
+        R.id.hybrid_map -> {
+            googleMap.mapType = GoogleMap.MAP_TYPE_HYBRID
+            true
+        }
+
+        R.id.satellite_map -> {
+            googleMap.mapType = GoogleMap.MAP_TYPE_SATELLITE
+            true
+        }
+
+        R.id.terrain_map -> {
+            googleMap.mapType = GoogleMap.MAP_TYPE_TERRAIN
+            true
+        }
+
+        else -> super.onOptionsItemSelected(item)
+    }
+
     /**
-     *  Checking Coarse Location, Fine Location, Background Location AND turned on location services
+     *  Checking Coarse Location, Fine Location, (Background Location IS NOT NECESSARY) and turned on location services
      */
     private fun checkAll3LocationPermissions() {
-        if (foregroundAndBackgroundLocationPermissionApproved()) {
+        if (foregroundLocationPermissionApproved()) {
             checkDeviceLocationSettingsAndStartMaps()
         } else {
-            requestForegroundAndBackgroundLocationPermissions()
+            requestForegroundLocationPermissions()
         }
     }
 
@@ -244,6 +279,7 @@ class SelectLocationFragment: Fragment() {
      *  Uses the Location Client to check the current state of location settings, and gives the user
      *  the opportunity to turn on location services within our app.
      */
+    @SuppressLint("VisibleForTests")
     private fun checkDeviceLocationSettingsAndStartMaps(resolve:Boolean = true) {
         val locationRequest = LocationRequest.create().apply {
             priority = LocationRequest.PRIORITY_LOW_POWER
@@ -272,7 +308,7 @@ class SelectLocationFragment: Fragment() {
             }
         }
         locationSettingsResponseTask?.addOnCompleteListener {
-            if ( it.isSuccessful ) {
+            if (it.isSuccessful) {
                 Toast.makeText(context, "Location permission granted!", Toast.LENGTH_SHORT).show()
                 // If my location does not activate that means it's not really granted!!
                 enableMyLocation()
@@ -281,116 +317,62 @@ class SelectLocationFragment: Fragment() {
         }
     }
 
-    /**
-     *  Determines whether the app has the appropriate permissions across Android 10+ and all other
-     *  Android versions.
-     */
-    @TargetApi(29)
-    private fun foregroundAndBackgroundLocationPermissionApproved(): Boolean {
+    @Deprecated("Deprecated in Java")
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE) {
+            if (grantResults.isEmpty() || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                // Permission denied.
+                Snackbar.make(
+                    binding.root, // Assuming 'binding.root' is the view of your fragment
+                    "Location permission is needed for core functionality!",
+                    Snackbar.LENGTH_INDEFINITE
+                ).setAction("ENABLE") {
+                    // Respond to the action, e.g., open settings or request the permission again
+                    requestForegroundLocationPermissions()
+                }.show()
+            } else {
+                // Permission was granted. Proceed with displaying location.
+                enableMyLocation()
+                zoomOnMyLocation()
+            }
+        }
+    }
+
+
+    /***  Determines whether the app has the appropriate permissions*/
+    private fun foregroundLocationPermissionApproved(): Boolean {
         val foregroundLocationApproved = (
                 PackageManager.PERMISSION_GRANTED == context?.let {
-                            ActivityCompat.checkSelfPermission(it, Manifest.permission.ACCESS_FINE_LOCATION)
-                        })
-        val backgroundPermissionApproved =
-            if (runningQOrLater) {
-                PackageManager.PERMISSION_GRANTED ==
-                        context?.let {
-                            ActivityCompat.checkSelfPermission(it, Manifest.permission.ACCESS_BACKGROUND_LOCATION)
-                        }
-            } else {
-                true    // return true if the device is running less then Q( where you don't need this permission)
-            }
-        return foregroundLocationApproved && backgroundPermissionApproved
+                    ActivityCompat.checkSelfPermission(it, Manifest.permission.ACCESS_FINE_LOCATION)
+                })
+        // if the foreground permission is not approved
+        if (!foregroundLocationApproved) {
+            // Show a toast message with a rationale to why the app needs this permission
+            Toast.makeText(
+                context,
+                "Location permission is needed for core functionality",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+        return foregroundLocationApproved
     }
 
-    /**
-     *  Requests ACCESS_FINE_LOCATION and (on Android 10+ (Q) ACCESS_BACKGROUND_LOCATION.
-     */
-    @TargetApi(29 )
-    private fun requestForegroundAndBackgroundLocationPermissions() {
-        if (foregroundAndBackgroundLocationPermissionApproved())
+    /***  If the Location is approved, then continue, else Requests ACCESS_FINE_LOCATION and (on Android 10+ (Q)).*/
+    private fun requestForegroundLocationPermissions() {
+        if (foregroundLocationPermissionApproved())
             return
-        var permissionsArray = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
-        val resultCode = when {
-            runningQOrLater -> {
-                permissionsArray += Manifest.permission.ACCESS_BACKGROUND_LOCATION
-                REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE
-            }
-            else -> REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE
-        }
-        Log.d("dra", "Request foreground only location permission")
-        activity?.let {
-            ActivityCompat.requestPermissions(it, permissionsArray, resultCode)
-        }
-    }
+        val permissionsArray = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
+        Log.d("dra", "Request user's location")
+        this.requestPermissions(permissionsArray, REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE)
 
+
+    }
 }
 
 
 
-
-// For dropping a marker at a point on the Map
-//            val sydney = LatLng(-34.00, 151.05)
-//            googleMap.addMarker(
-//                MarkerOptions().position(sydney).title("Marker Title").snippet("Marker Description")
-//            )
-
-// For zooming automatically to the location of the marker
-//            val cameraPosition = CameraPosition.Builder().target(sydney).zoom(12f).build()
-//            googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition))
-
-//    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-//        super.onViewCreated(view, savedInstanceState)
-//        binding.lifecycleOwner = this
-//
-//        context?.let { MapsInitializer.initialize(it) }
-//        setHasOptionsMenu(true)
-//        setDisplayHomeAsUpEnabled(true)
-//
-//        mapView = binding.map
-//        mapView.onCreate(savedInstanceState)
-//        mapView.getMapAsync(this)
-//    }
-//
-//    override fun onMapReady(googleMap: GoogleMap) {
-//
-//        googleMap.mapType = GoogleMap.MAP_TYPE_NORMAL
-//        map = googleMap
-//        setPoiClick(map)
-//        setMapStyle(map)
-//
-//        /**
-//         * Inside this functions we check for permissions
-//         */
-//        enableMyLocation()
-//        zoomOnMyLocation()
-//
-//        //These coordinates represent the lattitude and longitude of the Googleplex.
-//        val latitude = 37.422160
-//        val longitude = -122.084270
-//        val zoomLevel = 15f
-//
-//        val homeLatLng = LatLng(latitude, longitude)
-//        map.moveCamera(CameraUpdateFactory.newLatLngZoom(homeLatLng, zoomLevel))
-//        map.addMarker(MarkerOptions().position(homeLatLng))
-//    }
-
-//    private fun setMapLongClick(map: GoogleMap) {
-//        map.setOnMapLongClickListener { latLng ->
-//            // A Snippet is Additional text that's displayed below the title.
-//            val snippet = String.format(
-//                Locale.getDefault(),
-//                "Lat: %1$.5f, Long: %2$.5f",
-//                latLng.latitude,
-//                latLng.longitude
-//            )
-//            val poi = map.addMarker(
-//                MarkerOptions()
-//                    .position(latLng)
-//                    .title(getString(R.string.dropped_pin))
-//                    .snippet(snippet)
-//                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW))
-//            )
-//            passPoiInfoToViewModel(latLng, "Dropped Pin", poi)
-//        }
-//    }

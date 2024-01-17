@@ -19,9 +19,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
-import androidx.core.app.NotificationManagerCompat
 import androidx.databinding.DataBindingUtil
 import androidx.navigation.fragment.findNavController
 import com.google.android.gms.common.api.ResolvableApiException
@@ -39,7 +39,6 @@ import com.udacity.project4.databinding.FragmentSaveReminderBinding
 import com.udacity.project4.locationreminders.geofence.GeofenceBroadcastReceiver
 import com.udacity.project4.locationreminders.geofence.GeofenceTransitionsJobIntentService.Companion.ACTION_GEOFENCE_EVENT
 import com.udacity.project4.locationreminders.reminderslist.ReminderDataItem
-import com.udacity.project4.utils.NOTIFICATION_CHANNEL_ID
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
 import org.koin.android.ext.android.inject
 import java.util.UUID
@@ -52,8 +51,7 @@ class SaveReminderFragment : BaseFragment() {
     var id: String = UUID.randomUUID().toString()
 
     // Permissions are different for Android 10 and above
-    private val runningQOrLater = android.os.Build.VERSION.SDK_INT >=
-            android.os.Build.VERSION_CODES.Q
+    private val runningQOrLater = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
 
     private lateinit var geofencingClient: GeofencingClient
 
@@ -74,7 +72,6 @@ class SaveReminderFragment : BaseFragment() {
         private const val REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE = 34
         private const val LOCATION_PERMISSION_INDEX = 0
         private const val BACKGROUND_LOCATION_PERMISSION_INDEX = 1
-        private const val PERMISSION_REQUEST_FINE_LOCATION = 123
         private const val REQUEST_TURN_DEVICE_LOCATION_ON = 29
     }
 
@@ -95,6 +92,7 @@ class SaveReminderFragment : BaseFragment() {
 
     // All the permissions for the location services should already be on at this point,
     // so I'm suppressing the necessary permissions for addGeofences()
+    @RequiresApi(Build.VERSION_CODES.N)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.lifecycleOwner = this
@@ -187,6 +185,7 @@ class SaveReminderFragment : BaseFragment() {
      * Step 4: Handle permissions. After the user responds to the permission request at step 3, we check the result
      * If they are approved, then just return, otherwise request them
      * */
+    @RequiresApi(Build.VERSION_CODES.N)
     @Deprecated("Deprecated in Java")
     override fun onRequestPermissionsResult(
         requestCode: Int,
@@ -225,6 +224,7 @@ class SaveReminderFragment : BaseFragment() {
      * another thing to check is if the device’s location is on. Check device location settings and
      * START GEOFENCE
      * */
+    @RequiresApi(Build.VERSION_CODES.N)
     @SuppressLint("VisibleForTests")
     private fun checkDeviceLocationSettingsAndStartGeofence(resolve: Boolean = true) {
         val locationRequest = LocationRequest.create().apply {
@@ -254,9 +254,11 @@ class SaveReminderFragment : BaseFragment() {
             }
         }
         locationSettingsResponseTask.addOnCompleteListener {
+            val notificationManager =
+                context?.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             if (it.isSuccessful) {
-                // Check if notifications are enabled, if not, show a dialogue to the user
-                if (!areNotificationsEnabled()) {
+                // Check if notifications NOT are enabled, if not, show a dialogue to the user
+                if (!notificationManager.areNotificationsEnabled()) {
                     showNotificationPermissionDialog()
                 } else {
                     setupGeofence()
@@ -309,6 +311,7 @@ class SaveReminderFragment : BaseFragment() {
      * Step 6: After the user chooses whether to accept or deny device location permissions,
      * this checks if the user has chosen to accept the permissions. If not, it will ask again.
      * */
+    @RequiresApi(Build.VERSION_CODES.N)
     @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -317,6 +320,7 @@ class SaveReminderFragment : BaseFragment() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.N)
     private fun showNotificationPermissionDialog() {
         // Inflate the custom layout
         val dialogView =
@@ -327,33 +331,29 @@ class SaveReminderFragment : BaseFragment() {
 
         // Set up the buttons
         dialogView.findViewById<Button>(R.id.enableButton).setOnClickListener {
-            // User agrees to enable notifications
-            checkDeviceLocationSettingsAndStartGeofence()
+            // Enable notifications
+            val intent = Intent()
+            intent.action = "android.settings.APP_NOTIFICATION_SETTINGS"
+            intent.putExtra("android.provider.extra.APP_PACKAGE", requireContext().packageName)
+            startActivity(intent)
+
+            // Presumably the user has given access to the notifications, so we can start the geofence
+            setupGeofence()
             dialog.dismiss()
         }
 
         dialogView.findViewById<Button>(R.id.notNowButton).setOnClickListener {
             // User refuses to enable notifications
             dialog.dismiss()
-            // You can choose to show a message or take some action here
+            // Toast message explaining that notifications are essential to the app's functionality
+            Toast.makeText(
+                context,
+                getString(R.string.notification_permission_toast),
+                Toast.LENGTH_LONG
+            ).show()
         }
 
         dialog.show()
-    }
-
-    private fun areNotificationsEnabled(): Boolean {
-        val notificationManager =
-            context?.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-
-            // For versions Oreo and above, check if notification channel is enabled - the id is taken from NotificationsUtils
-            val channel = notificationManager.getNotificationChannel(NOTIFICATION_CHANNEL_ID)
-            channel?.importance != NotificationManager.IMPORTANCE_NONE
-        } else {
-            // For versions below Oreo, check if notifications are enabled for the app
-            NotificationManagerCompat.from(requireContext()).areNotificationsEnabled()
-        }
     }
 
     override fun onDestroy() {

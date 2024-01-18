@@ -2,13 +2,15 @@ package com.udacity.project4.locationreminders.savereminder.selectreminderlocati
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.app.Activity
+import android.content.Intent
 import android.content.IntentSender
 import android.content.pm.PackageManager
 import android.content.res.Resources
 import android.location.Criteria
 import android.location.LocationManager
+import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import android.view.*
 import android.widget.Toast
@@ -28,6 +30,7 @@ import com.google.android.gms.maps.MapView
 import com.google.android.gms.maps.MapsInitializer
 import com.google.android.gms.maps.model.*
 import com.google.android.material.snackbar.Snackbar
+import com.udacity.project4.BuildConfig
 import com.udacity.project4.R
 import com.udacity.project4.databinding.FragmentSelectLocationBinding
 import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
@@ -35,6 +38,7 @@ import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
 import org.koin.android.ext.android.inject
 import java.util.Locale
 
+private const val LOCATION_PERMISSION_INDEX = 0
 private const val REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE = 34
 private const val REQUEST_TURN_DEVICE_LOCATION_ON = 29
 
@@ -80,8 +84,8 @@ class SelectLocationFragment: Fragment() {
             googleMap = mMap
 
             // For checking everything and showing a move to my location and zooming on my location
-            checkAll3LocationPermissions()
-
+            checkForegroundLocationPermissions()
+            enableMyLocation()
             setHasOptionsMenu(true)
             setDisplayHomeAsUpEnabled(true)
             setMapLongClick(googleMap)
@@ -166,48 +170,44 @@ class SelectLocationFragment: Fragment() {
     }
 
     // Checks that users have given permission
-    private fun isPermissionGranted() : Boolean {
+    private fun isPermissionGranted(): Boolean {
         return ContextCompat.checkSelfPermission(
             requireContext(),
             Manifest.permission.ACCESS_FINE_LOCATION
         ) === PackageManager.PERMISSION_GRANTED
     }
 
-    // Checks if users have given their location and sets location enabled if so.
+    // The permission is given above this method
+    @SuppressLint("MissingPermission")
     private fun enableMyLocation() {
         if (isPermissionGranted()) {
-            if (ActivityCompat.checkSelfPermission(
-                    requireContext(),
-                    Manifest.permission.ACCESS_FINE_LOCATION
-                ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                    requireContext(),
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                ActivityCompat.requestPermissions(
-                    context as Activity,
-                    arrayOf(
-                        Manifest.permission.ACCESS_FINE_LOCATION,
-                        Manifest.permission.ACCESS_COARSE_LOCATION
-                    ),
-                    REQUEST_LOCATION_PERMISSION
-                )
-                return
-            }
             googleMap.isMyLocationEnabled = true
+        } else {
+            requestPermissions(
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                REQUEST_LOCATION_PERMISSION
+            )
         }
     }
+
 
     private fun zoomOnMyLocation() {
         val locationManager = getSystemService(requireContext(), LocationManager::class.java)
         val criteria = Criteria()
 
+        // If the user has not enabled the location services, then we don't zoom on his location
         if (context?.let {
                 ActivityCompat.checkSelfPermission(it, Manifest.permission.ACCESS_FINE_LOCATION)
             } != PackageManager.PERMISSION_GRANTED && context?.let {
                 ActivityCompat.checkSelfPermission(it, Manifest.permission.ACCESS_COARSE_LOCATION)
             } != PackageManager.PERMISSION_GRANTED
         ) {
+            // display a message to the user that he has to enable the location services
+            Toast.makeText(
+                context,
+                "In order for the phone to find your locations you must enable location services!",
+                Toast.LENGTH_LONG
+            ).show()
             return
         }
         val location =  locationManager!!.getLastKnownLocation(
@@ -267,7 +267,7 @@ class SelectLocationFragment: Fragment() {
     /**
      *  Checking Coarse Location, Fine Location, (Background Location IS NOT NECESSARY) and turned on location services
      */
-    private fun checkAll3LocationPermissions() {
+    private fun checkForegroundLocationPermissions() {
         if (foregroundLocationPermissionApproved()) {
             checkDeviceLocationSettingsAndStartMaps()
         } else {
@@ -289,28 +289,30 @@ class SelectLocationFragment: Fragment() {
         // Checks if the location is enabled on the phone
         val locationSettingsResponseTask = settingsClient?.checkLocationSettings(builder.build())
         locationSettingsResponseTask?.addOnFailureListener { exception ->
-            if (exception is ResolvableApiException && resolve){
+            if (exception is ResolvableApiException && resolve) {
                 try {
-                    startIntentSenderForResult(exception.resolution.intentSender,
+                    startIntentSenderForResult(
+                        exception.resolution.intentSender,
                         REQUEST_TURN_DEVICE_LOCATION_ON,
-                        null, 0, 0, 0, null)
+                        null, 0, 0, 0, null
+                    )
                 } catch (sendEx: IntentSender.SendIntentException) {
                     Log.d("dra", "Error getting location settings resolution: " + sendEx.message)
                 }
-            } else {
-                // here we display a dialog that says that location should be enabled
-                this.view?.let {
-                    Snackbar.make(it, R.string.location_required_error, Snackbar.LENGTH_INDEFINITE)
-                        .setAction(android.R.string.ok) {
-                            checkDeviceLocationSettingsAndStartMaps()
-                        }.show()
-                }
+            }
+            // If the user doesn't turn on the location services, then we display a message
+            this.view?.let {
+                Snackbar.make(it, R.string.location_required_error, Snackbar.LENGTH_LONG)
+                    .setAction(android.R.string.ok) {
+                        checkDeviceLocationSettingsAndStartMaps()
+                    }.show()
             }
         }
         locationSettingsResponseTask?.addOnCompleteListener {
             if (it.isSuccessful) {
-                Toast.makeText(context, "Location permission granted!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Device location turned on", Toast.LENGTH_SHORT).show()
                 // If my location does not activate that means it's not really granted!!
+                // Zoom on my location works when entering the map with location device setting ON
                 enableMyLocation()
                 zoomOnMyLocation()
             }
@@ -323,29 +325,30 @@ class SelectLocationFragment: Fragment() {
         permissions: Array<String>,
         grantResults: IntArray
     ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE) {
-            if (grantResults.isEmpty() || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-                // Permission denied.
-                Snackbar.make(
-                    binding.root, // Assuming 'binding.root' is the view of your fragment
-                    "Location permission is needed for core functionality!",
-                    Snackbar.LENGTH_INDEFINITE
-                ).setAction("ENABLE") {
-                    // Respond to the action, e.g., open settings or request the permission again
-                    requestForegroundLocationPermissions()
+        if (grantResults.isEmpty() ||
+            grantResults[LOCATION_PERMISSION_INDEX] == PackageManager.PERMISSION_DENIED
+        ) {
+            Snackbar.make(
+                this.requireView(),
+                R.string.permission_denied_explanation,
+                Snackbar.LENGTH_INDEFINITE
+            )
+                .setAction(R.string.settings) {
+                    startActivity(Intent().apply {
+                        action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+                        data = Uri.fromParts("package", BuildConfig.APPLICATION_ID, null)
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                    })
                 }.show()
-            } else {
-                // Permission was granted. Proceed with displaying location.
-                enableMyLocation()
-                zoomOnMyLocation()
-            }
+        } else {
+            checkDeviceLocationSettingsAndStartMaps()
+            // on results ok this should be enabled!
         }
     }
 
-
     /***  Determines whether the app has the appropriate permissions*/
     private fun foregroundLocationPermissionApproved(): Boolean {
+        // is permission granted - the val below has the answer
         val foregroundLocationApproved = (
                 PackageManager.PERMISSION_GRANTED == context?.let {
                     ActivityCompat.checkSelfPermission(it, Manifest.permission.ACCESS_FINE_LOCATION)
@@ -369,8 +372,6 @@ class SelectLocationFragment: Fragment() {
         val permissionsArray = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
         Log.d("dra", "Request user's location")
         this.requestPermissions(permissionsArray, REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE)
-
-
     }
 }
 

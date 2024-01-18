@@ -106,27 +106,34 @@ class SaveReminderFragment : BaseFragment() {
         }
 
         binding.saveReminder.setOnClickListener {
-            val title = _viewModel.reminderTitle.value
-            val description = _viewModel.reminderDescription.value
-            val location = _viewModel.reminderSelectedLocationStr.value
-            val latitude = _viewModel.latitude.value
-            val longitude = _viewModel.longitude.value
 
-            reminderData = ReminderDataItem(title, description, location, latitude, longitude, id)
-
-            // Check if all elements are filled out and Add reminder to local db
-            if (_viewModel.validateEnteredData(reminderData)) {
-                _viewModel.saveReminder(reminderData)
-
-                // Check if permissions are granted, if not, request them
-                if (foregroundAndBackgroundLocationPermissionApproved()) {
-                    checkDeviceLocationSettingsAndStartGeofence()
-                } else {
-                    requestForegroundAndBackgroundLocationPermissions()
-                }
-                // Navigate back to the reminders list
-                findNavController().navigate(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())
+            // Check if first 2 permissions are granted: foreground and background, if not, request them
+            if (foregroundAndBackgroundLocationPermissionApproved()) {
+                // If first 2 are granted, check if the device's location is on (3rd permission), if not, request it
+                // At the end it checks for the 4th permission: notification permission
+                checkDeviceLocationSettingsAndStartSavingReminder()
+            } else {
+                requestForegroundAndBackgroundLocationPermissions()
             }
+        }
+    }
+
+    // After every permission is granted: 1 background, 2 foreground,3 the device's location is on, and 4. notifications are enabled,
+    // call this at on success at step 5
+    private fun validateReminderStartGeofenceAndSaveReminder() {
+        val reminderDataItem = ReminderDataItem(
+            _viewModel.reminderTitle.value,
+            _viewModel.reminderDescription.value,
+            _viewModel.reminderSelectedLocationStr.value,
+            _viewModel.latitude.value,
+            _viewModel.longitude.value,
+            id
+        )
+        if (_viewModel.validateEnteredData(reminderDataItem)) {
+            _viewModel.saveReminder(reminderDataItem)
+            setupGeofence()
+            // Navigate back to the reminders list
+            findNavController().navigate(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())
         }
     }
 
@@ -170,7 +177,6 @@ class SaveReminderFragment : BaseFragment() {
                 permissionsArray += Manifest.permission.ACCESS_BACKGROUND_LOCATION
                 REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE
             }
-
             else -> REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE
         }
         Log.d(TAG, "Request foreground only location permission")
@@ -215,7 +221,7 @@ class SaveReminderFragment : BaseFragment() {
                     })
                 }.show()
         } else {
-            checkDeviceLocationSettingsAndStartGeofence()
+            checkDeviceLocationSettingsAndStartSavingReminder()
         }
     }
 
@@ -226,7 +232,7 @@ class SaveReminderFragment : BaseFragment() {
      * */
     @RequiresApi(Build.VERSION_CODES.N)
     @SuppressLint("VisibleForTests")
-    private fun checkDeviceLocationSettingsAndStartGeofence(resolve: Boolean = true) {
+    private fun checkDeviceLocationSettingsAndStartSavingReminder(resolve: Boolean = true) {
         val locationRequest = LocationRequest.create().apply {
             priority = LocationRequest.PRIORITY_LOW_POWER
         }
@@ -249,19 +255,24 @@ class SaveReminderFragment : BaseFragment() {
                     this.requireView(),
                     R.string.location_required_error, Snackbar.LENGTH_INDEFINITE
                 ).setAction(android.R.string.ok) {
-                    checkDeviceLocationSettingsAndStartGeofence()
+                    checkDeviceLocationSettingsAndStartSavingReminder()
                 }.show()
+            }
+            // If the user doesn't turn on the location services, then we display a message
+            this.view?.let {
+                Snackbar.make(it, R.string.location_required_error, Snackbar.LENGTH_LONG).show()
             }
         }
         locationSettingsResponseTask.addOnCompleteListener {
             val notificationManager =
                 context?.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
             if (it.isSuccessful) {
                 // Check if notifications NOT are enabled, if not, show a dialogue to the user
                 if (!notificationManager.areNotificationsEnabled()) {
                     showNotificationPermissionDialog()
                 } else {
-                    setupGeofence()
+                    validateReminderStartGeofenceAndSaveReminder()
                 }
             }
         }
@@ -316,7 +327,11 @@ class SaveReminderFragment : BaseFragment() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == REQUEST_TURN_DEVICE_LOCATION_ON) {
-            checkDeviceLocationSettingsAndStartGeofence(false)
+            checkDeviceLocationSettingsAndStartSavingReminder(false)
+            // make toast
+            Toast.makeText(
+                context, "An answer was given! - dragos", Toast.LENGTH_LONG
+            ).show()
         }
     }
 

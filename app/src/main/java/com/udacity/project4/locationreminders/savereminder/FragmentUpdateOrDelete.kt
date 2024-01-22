@@ -37,6 +37,14 @@ import com.udacity.project4.locationreminders.reminderslist.ReminderDataItem
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
 import org.koin.android.ext.android.inject
 
+/**
+ * Updating a reminder. I use the same fragment as for saving a reminder, but I populate the fields with the data from the reminder I want to update.
+ * I also use the same view model as for saving a reminder. I use the same layout as for saving a reminder.
+ * Intentionally the user can save a reminder even though the location service is not turned on.
+ * The user has to be able to gracefully use the app even without the location service turned on -
+ * he can use it as a normal reminder app if he does not want to give the permissions
+ */
+
 class FragmentUpdateOrDelete : BaseFragment() {
     private val navigationArgs: FragmentUpdateOrDeleteArgs by navArgs()
     override val _viewModel: SaveReminderViewModel by inject()

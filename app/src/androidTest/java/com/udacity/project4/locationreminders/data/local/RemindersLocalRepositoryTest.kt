@@ -77,6 +77,25 @@ class RemindersLocalRepositoryTest {
     }
 
     @Test
+    fun dataNotAvailable_getReminderById() = runBlocking {
+        // GIVEN - save a reminder
+        val reminder = ReminderDTO(
+            "title",
+            "description",
+            "location",
+            1.0,
+            2.0
+        )
+        remindersLocalRepository.saveReminder(reminder)
+
+        // WHEN - get a reminder by id
+        val result = remindersLocalRepository.getReminder("")
+
+        // THEN - the result is an error
+        assertTrue(result is Result.Error)
+    }
+
+    @Test
     fun deleteAllReminders_getReminders() = runBlocking {
         // GIVEN - save a reminder
         val reminder = ReminderDTO(
@@ -90,6 +109,26 @@ class RemindersLocalRepositoryTest {
 
         // WHEN - delete all reminders
         remindersLocalRepository.deleteAllReminders()
+
+        // THEN - the result of getReminders is an empty list
+        val result = remindersLocalRepository.getReminders()
+        assertTrue(result == Result.Success(emptyList<ReminderDTO>()))
+    }
+
+    @Test
+    fun delete_one_reminder() = runBlocking {
+        // GIVEN - save a reminder
+        val reminder = ReminderDTO(
+            "title",
+            "description",
+            "location",
+            1.0,
+            2.0
+        )
+        remindersLocalRepository.saveReminder(reminder)
+
+        // WHEN - delete a reminder
+        remindersLocalRepository.deleteReminder(reminder.id)
 
         // THEN - the result of getReminders is an empty list
         val result = remindersLocalRepository.getReminders()

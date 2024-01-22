@@ -177,7 +177,7 @@ class SelectLocationFragment: Fragment() {
         ) === PackageManager.PERMISSION_GRANTED
     }
 
-    // The permission is given above this method
+    // The permission is given above this method. Request permissions is called below from a Fragment context
     @SuppressLint("MissingPermission")
     private fun enableMyLocation() {
         if (isPermissionGranted()) {

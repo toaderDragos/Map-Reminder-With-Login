@@ -118,8 +118,8 @@ class SaveReminderFragment : BaseFragment() {
         }
     }
 
-    // After every permission is granted: 1 background, 2 foreground,3 the device's location is on, and 4. notifications are enabled,
-    // call this at on success at step 5
+    // After every permission is granted: 1 foreground, 2 background,3 the device's location is on, and 4. notifications are enabled,
+    // Call this at on success at step 5
     private fun validateReminderStartGeofenceAndSaveReminder() {
         val reminderDataItem = ReminderDataItem(
             _viewModel.reminderTitle.value,
@@ -237,7 +237,7 @@ class SaveReminderFragment : BaseFragment() {
             priority = LocationRequest.PRIORITY_LOW_POWER
         }
         val builder = LocationSettingsRequest.Builder().addLocationRequest(locationRequest)
-        val settingsClient = LocationServices.getSettingsClient(requireActivity())
+        val settingsClient = LocationServices.getSettingsClient(this.requireActivity())
         val locationSettingsResponseTask = settingsClient.checkLocationSettings(builder.build())
 
         locationSettingsResponseTask.addOnFailureListener { exception ->
@@ -264,14 +264,15 @@ class SaveReminderFragment : BaseFragment() {
             }
         }
         locationSettingsResponseTask.addOnCompleteListener {
-            val notificationManager =
-                context?.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
             if (it.isSuccessful) {
+                val notificationManager =
+                    context?.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
                 // Check if notifications NOT are enabled, if not, show a dialogue to the user
                 if (!notificationManager.areNotificationsEnabled()) {
                     showNotificationPermissionDialog()
+                    println("dra Notifications are NOT enabled and all of the permissions are granted")
                 } else {
+                    println("dra Notifications are enabled and all of the permissions are granted")
                     validateReminderStartGeofenceAndSaveReminder()
                 }
             }
@@ -327,6 +328,7 @@ class SaveReminderFragment : BaseFragment() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == REQUEST_TURN_DEVICE_LOCATION_ON) {
+            // If the user has turned on the device's location, then we can start the geofence
             checkDeviceLocationSettingsAndStartSavingReminder(false)
             // make toast
             Toast.makeText(
@@ -351,9 +353,6 @@ class SaveReminderFragment : BaseFragment() {
             intent.action = "android.settings.APP_NOTIFICATION_SETTINGS"
             intent.putExtra("android.provider.extra.APP_PACKAGE", requireContext().packageName)
             startActivity(intent)
-
-            // Presumably the user has given access to the notifications, so we can start the geofence
-            setupGeofence()
             dialog.dismiss()
         }
 

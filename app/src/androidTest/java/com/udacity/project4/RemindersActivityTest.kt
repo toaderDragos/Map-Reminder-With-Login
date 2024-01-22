@@ -251,7 +251,8 @@ class RemindersActivityTest :
 
         // Hide keyboard
         onView(withId(R.id.reminderDescription)).perform(closeSoftKeyboard())
-        Thread.sleep(1000)
+        // Wait for the snackbar to disappear
+        Thread.sleep(3000)
         // Click on the delete reminder button
         onView(withId(R.id.deleteReminder)).perform(click())
         // Check if there are no reminders displayed

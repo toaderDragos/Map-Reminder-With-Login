@@ -105,6 +105,8 @@ class SaveReminderFragment : BaseFragment() {
             )
         }
 
+
+
         binding.saveReminder.setOnClickListener {
 
             // Check if first 2 permissions are granted: foreground and background, if not, request them
@@ -171,17 +173,19 @@ class SaveReminderFragment : BaseFragment() {
     private fun requestForegroundAndBackgroundLocationPermissions() {
         if (foregroundAndBackgroundLocationPermissionApproved())
             return
+
         var permissionsArray = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
         val resultCode = when {
             runningQOrLater -> {
                 permissionsArray += Manifest.permission.ACCESS_BACKGROUND_LOCATION
                 REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE
             }
+
             else -> REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE
         }
         Log.d(TAG, "Request foreground only location permission")
-        ActivityCompat.requestPermissions(
-            requireActivity(),
+        // request permissions is done from a fragment not an activity
+        requestPermissions(
             permissionsArray,
             resultCode
         )
@@ -243,10 +247,13 @@ class SaveReminderFragment : BaseFragment() {
         locationSettingsResponseTask.addOnFailureListener { exception ->
             if (exception is ResolvableApiException && resolve) {
                 try {
-                    exception.startResolutionForResult(
-                        requireActivity(),
-                        REQUEST_TURN_DEVICE_LOCATION_ON
+                    // this method is the way in which the user can turn on the device's location in a Fragment (not Activity)
+                    // this way Fragment.onActivityResult() is triggered
+                    startIntentSenderForResult(
+                        exception.resolution.intentSender,
+                        REQUEST_TURN_DEVICE_LOCATION_ON, null, 0, 0, 0, null
                     )
+
                 } catch (sendEx: IntentSender.SendIntentException) {
                     Log.d(TAG, "Error getting location settings resolution: " + sendEx.message)
                 }
@@ -322,6 +329,7 @@ class SaveReminderFragment : BaseFragment() {
     /** PERMISSIONS
      * Step 6: After the user chooses whether to accept or deny device location permissions,
      * this checks if the user has chosen to accept the permissions. If not, it will ask again.
+     * This call works on fragments, not on activities!. for the activities, see "Virtual hunt with geofences - 4 check device location"
      * */
     @RequiresApi(Build.VERSION_CODES.N)
     @Deprecated("Deprecated in Java")
@@ -330,13 +338,17 @@ class SaveReminderFragment : BaseFragment() {
         if (requestCode == REQUEST_TURN_DEVICE_LOCATION_ON) {
             // If the user has turned on the device's location, then we can start the geofence
             checkDeviceLocationSettingsAndStartSavingReminder(false)
-            // make toast
-            Toast.makeText(
-                context, "An answer was given! - dragos", Toast.LENGTH_LONG
-            ).show()
+            // Make toast - finally works!
+//            Toast.makeText(
+//                context, "An answer was given! - dragos", Toast.LENGTH_LONG
+//            ).show()
         }
     }
 
+    /** PERMISSIONS
+     * Step 7: If the user has denied notifications, then we show a dialogue to the user.
+     * The rationale is that the app needs notifications to work properly and it is written directly in the xml file
+     * */
     @RequiresApi(Build.VERSION_CODES.N)
     private fun showNotificationPermissionDialog() {
         // Inflate the custom layout
@@ -348,11 +360,10 @@ class SaveReminderFragment : BaseFragment() {
 
         // Set up the buttons
         dialogView.findViewById<Button>(R.id.enableButton).setOnClickListener {
-            // Enable notifications
+            // Enable notifications in this dialog view without opening a new window
             val intent = Intent()
             intent.action = "android.settings.APP_NOTIFICATION_SETTINGS"
-            intent.putExtra("android.provider.extra.APP_PACKAGE", requireContext().packageName)
-            startActivity(intent)
+            intent.putExtra("app_package", requireContext().packageName)
             dialog.dismiss()
         }
 
@@ -369,6 +380,7 @@ class SaveReminderFragment : BaseFragment() {
 
         dialog.show()
     }
+
 
     override fun onDestroy() {
         super.onDestroy()

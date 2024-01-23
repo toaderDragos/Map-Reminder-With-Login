@@ -31,8 +31,9 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:layout_marginTop="16dp"
+            android:gravity="center_horizontal"
             android:text="@string/get_reminded_about_your_tasks_at_the_right_time_and_location"
-            android:textSize="14sp" /> <!-- Message -->
+            android:textSize="16sp" /> <!-- Message -->
 
         <Button
             android:id="@+id/enableButton"

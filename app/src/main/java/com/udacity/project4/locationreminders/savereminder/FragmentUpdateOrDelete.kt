@@ -247,8 +247,7 @@ class FragmentUpdateOrDelete : BaseFragment() {
             else -> REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE
         }
         Log.d(AuthenticationActivity.TAG, "Request foreground only location permission")
-        ActivityCompat.requestPermissions(
-            requireActivity(),
+        requestPermissions(
             permissionsArray,
             resultCode
         )
@@ -308,9 +307,11 @@ class FragmentUpdateOrDelete : BaseFragment() {
         locationSettingsResponseTask.addOnFailureListener { exception ->
             if (exception is ResolvableApiException && resolve) {
                 try {
-                    exception.startResolutionForResult(
-                        requireActivity(),
-                        REQUEST_TURN_DEVICE_LOCATION_ON
+                    // this method is the way in which the user can turn on the device's location in a Fragment (not Activity)
+                    // this way Fragment.onActivityResult() is triggered
+                    startIntentSenderForResult(
+                        exception.resolution.intentSender,
+                        REQUEST_TURN_DEVICE_LOCATION_ON, null, 0, 0, 0, null
                     )
                 } catch (sendEx: IntentSender.SendIntentException) {
                     Log.d(
@@ -331,6 +332,7 @@ class FragmentUpdateOrDelete : BaseFragment() {
             if (it.isSuccessful) {
                 // Remove old geofence and put a new one
                 removeGeofenceById(id)
+
                 updateGeofence()
             }
         }

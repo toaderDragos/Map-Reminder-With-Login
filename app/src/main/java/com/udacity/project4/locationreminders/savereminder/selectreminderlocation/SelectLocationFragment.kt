@@ -15,7 +15,6 @@ import android.util.Log
 import android.view.*
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
@@ -85,7 +84,6 @@ class SelectLocationFragment: Fragment() {
 
             // For checking everything and showing a move to my location and zooming on my location
             checkForegroundLocationPermissions()
-            enableMyLocation()
             setHasOptionsMenu(true)
             setDisplayHomeAsUpEnabled(true)
             setMapLongClick(googleMap)
@@ -169,27 +167,12 @@ class SelectLocationFragment: Fragment() {
         }
     }
 
-    // Checks that users have given permission
-    private fun isPermissionGranted(): Boolean {
-        return ContextCompat.checkSelfPermission(
-            requireContext(),
-            Manifest.permission.ACCESS_FINE_LOCATION
-        ) === PackageManager.PERMISSION_GRANTED
-    }
-
     // The permission is given above this method. Request permissions is called below from a Fragment context
     @SuppressLint("MissingPermission")
     private fun enableMyLocation() {
-        if (isPermissionGranted()) {
-            googleMap.isMyLocationEnabled = true
-        } else {
-            requestPermissions(
-                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                REQUEST_LOCATION_PERMISSION
-            )
-        }
+        googleMap.setMyLocationEnabled(true)
+        zoomOnMyLocation()
     }
-
 
     private fun zoomOnMyLocation() {
         val locationManager = getSystemService(requireContext(), LocationManager::class.java)
@@ -269,7 +252,12 @@ class SelectLocationFragment: Fragment() {
      */
     private fun checkForegroundLocationPermissions() {
         if (foregroundLocationPermissionApproved()) {
-            checkDeviceLocationSettingsAndStartMaps()
+            enableMyLocation()
+            // set my location click listener
+            googleMap.setOnMyLocationButtonClickListener {
+                checkDeviceLocationSettings()
+                true
+            }
         } else {
             requestForegroundLocationPermissions()
         }
@@ -277,10 +265,10 @@ class SelectLocationFragment: Fragment() {
 
     /**
      *  Uses the Location Client to check the current state of location settings, and gives the user
-     *  the opportunity to turn on location services within our app.
+     *  the opportunity to turn ON location services within our app.
      */
     @SuppressLint("VisibleForTests")
-    private fun checkDeviceLocationSettingsAndStartMaps(resolve:Boolean = true) {
+    private fun checkDeviceLocationSettings(resolve: Boolean = true) {
         val locationRequest = LocationRequest.create().apply {
             priority = LocationRequest.PRIORITY_LOW_POWER
         }
@@ -304,7 +292,7 @@ class SelectLocationFragment: Fragment() {
             this.view?.let {
                 Snackbar.make(it, R.string.location_required_error, Snackbar.LENGTH_LONG)
                     .setAction(android.R.string.ok) {
-                        checkDeviceLocationSettingsAndStartMaps()
+                        checkDeviceLocationSettings()
                     }.show()
             }
         }
@@ -313,7 +301,7 @@ class SelectLocationFragment: Fragment() {
                 Toast.makeText(context, "Device location turned on", Toast.LENGTH_SHORT).show()
                 // If my location does not activate that means it's not really granted!!
                 // Zoom on my location works when entering the map with location device setting ON
-                enableMyLocation()
+//                enableMyLocation()
                 zoomOnMyLocation()
             }
         }
@@ -341,7 +329,7 @@ class SelectLocationFragment: Fragment() {
                     })
                 }.show()
         } else {
-            checkDeviceLocationSettingsAndStartMaps()
+            checkDeviceLocationSettings()
             // on results ok this should be enabled!
         }
     }

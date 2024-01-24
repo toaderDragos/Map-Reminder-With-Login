@@ -3,9 +3,7 @@ package com.udacity.project4.locationreminders.savereminder
 import android.Manifest
 import android.annotation.SuppressLint
 import android.annotation.TargetApi
-import android.app.NotificationManager
 import android.app.PendingIntent
-import android.content.Context
 import android.content.Intent
 import android.content.IntentSender
 import android.content.pm.PackageManager
@@ -23,7 +21,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
-import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.navigation.fragment.findNavController
@@ -34,7 +31,6 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.LocationSettingsRequest
 import com.google.android.material.snackbar.Snackbar
 import com.udacity.project4.BuildConfig
-
 import com.udacity.project4.R
 import com.udacity.project4.authentication.AuthenticationActivity.Companion.TAG
 import com.udacity.project4.base.BaseFragment
@@ -182,15 +178,6 @@ class SaveReminderFragment : BaseFragment() {
         return foregroundLocationApproved && backgroundPermissionApproved
     }
 
-    // Notification
-    private fun notificationPermissionApproved(): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            NotificationManagerCompat.from(requireContext()).areNotificationsEnabled()
-        } else {
-            true // Before Android 13, the permission is not required.
-        }
-    }
-
     /** PERMISSIONS
      * Step 3: Request permissions
      * If they are approved, then just return, otherwise request them
@@ -300,12 +287,14 @@ class SaveReminderFragment : BaseFragment() {
             if (it.isSuccessful) {
                 // Notifications for API 33 and above
                 when {
+                    // IF the permission is granted, then we can start saving
                     ContextCompat.checkSelfPermission(
                         this.requireContext(),
                         Manifest.permission.POST_NOTIFICATIONS
                     ) == PackageManager.PERMISSION_GRANTED -> {
-                        // You can use the API that requires the permission.
+                        // You can use the API that requires the permission. This code gets called from lower APK's as well
                         validateReminderStartGeofenceAndSaveReminder()
+                        println("dra first call on PostNotifications APK > 32")
                     }
 
                     ActivityCompat.shouldShowRequestPermissionRationale(
@@ -316,34 +305,35 @@ class SaveReminderFragment : BaseFragment() {
                         // features are disabled if it's declined. In this UI, include a
                         // "cancel" or "no thanks" button that lets the user continue
                         // using your app without granting the permission.
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                            showNotificationRationaleDialog()
-                        }
+                        showNotificationRationaleDialog()
                     }
-
                     else -> {
                         // You can directly ask for the permission.
                         // The registered ActivityResultCallback gets the result of this request.
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                             requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                        } else {
+                            // SHOULD BE ACTIVATED ANYWAY INDIFFERENT OF APK VERSION
+                            showNotificationRationaleDialog()
                         }
                     }
                 }
 
                 // Notifications for API 32 and below
-                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-                    val notificationManager =
-                        context?.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-                    // Check if notifications are NOT enabled, if not, show a dialogue to the user
-                    if (notificationManager.areNotificationsEnabled()) {
-                        println("dra Notifications are enabled and all of the permissions are granted")
-                        // give direct permission
-                        validateReminderStartGeofenceAndSaveReminder()
-                    } else {
-                        showNotificationRationaleDialog()
-                        println("dra Notifications are NOT enabled and all of the permissions are granted")
-                    }
-                }
+//                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+//                    val notificationManager =
+//                        context?.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+//                    // Check if notifications are NOT enabled, if not, show a dialogue to the user
+//                    if (notificationManager.areNotificationsEnabled()) {
+//                        println("dra Notifications are enabled and all of the permissions are granted")
+//                        // give direct permission
+//                        validateReminderStartGeofenceAndSaveReminder()
+//                        println("dra second call on isSuccessful APK < 32")
+//                    } else {
+//                        showNotificationRationaleDialog()
+//                        println("dra Notifications are NOT enabled and all of the permissions are granted")
+//                    }
+//                }
             }
         }
     }
@@ -423,7 +413,6 @@ class SaveReminderFragment : BaseFragment() {
                         action = Settings.ACTION_APP_NOTIFICATION_SETTINGS
                         putExtra(Settings.EXTRA_APP_PACKAGE, requireContext().packageName)
                     }
-
                     else -> {
                         // Fallback for earlier versions
                         action = "android.settings.APP_NOTIFICATION_SETTINGS"
@@ -439,7 +428,7 @@ class SaveReminderFragment : BaseFragment() {
         dialogView.findViewById<Button>(R.id.notNowButton).setOnClickListener {
             // User refuses to enable notifications - WE SHOULDN'T FORCE THE USER TO ENABLE NOTIFICATIONS - SO WE CONTINUE WITH THE APP
             validateReminderStartGeofenceAndSaveReminder()
-
+            println("dra 3rd call on notNowButton")
             // Toast message explaining that notifications are essential to the app's functionality
             Toast.makeText(
                 context,

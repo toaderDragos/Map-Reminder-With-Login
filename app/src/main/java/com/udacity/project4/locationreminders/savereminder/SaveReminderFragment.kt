@@ -19,9 +19,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.navigation.fragment.findNavController
 import com.google.android.gms.common.api.ResolvableApiException
@@ -31,6 +34,7 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.LocationSettingsRequest
 import com.google.android.material.snackbar.Snackbar
 import com.udacity.project4.BuildConfig
+
 import com.udacity.project4.R
 import com.udacity.project4.authentication.AuthenticationActivity.Companion.TAG
 import com.udacity.project4.base.BaseFragment
@@ -47,29 +51,45 @@ class SaveReminderFragment : BaseFragment() {
     // Get the view model this time as a single to be shared with the another fragment
     override val _viewModel: SaveReminderViewModel by inject()
     private lateinit var binding: FragmentSaveReminderBinding
-    lateinit var reminderData: ReminderDataItem
     var id: String = UUID.randomUUID().toString()
 
     // Permissions are different for Android 10 and above
     private val runningQOrLater = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
 
     private lateinit var geofencingClient: GeofencingClient
-
     private val geofencePendingIntent: PendingIntent by lazy {
         val intent = Intent(context, GeofenceBroadcastReceiver::class.java)
         intent.action = ACTION_GEOFENCE_EVENT
-        PendingIntent.getBroadcast(
-            context,
-            0,
-            intent,
-            PendingIntent.FLAG_MUTABLE
-        )    // for the apps that target version 31 and above
+        // for the apps that target version 31 and above
+        PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_MUTABLE)
+    }
+
+    // Register the permissions callback, which handles the user's response to the
+// system permissions dialog. Save the return value, an instance of
+// ActivityResultLauncher. You can use either a val, as shown in this snippet,
+// or a lateinit var in your onAttach() or onCreate() method.
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            // Permission is granted. Continue the action or workflow in your app
+            // as usual.
+        } else {
+            // Explain to the user that the feature is unavailable because the
+            // feature requires a permission that the user has denied. At the
+            // same time, respect the user's decision. Don't link to system
+            // settings in an effort to convince the user to change their
+            // decision.
+            showNotificationRationaleDialog()
+        }
     }
 
     // constants used in the location permission request to identify my requests
     companion object {
         private const val REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE = 33
         private const val REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE = 34
+        private const val REQUEST_NOTIFICATION_PERMISSION_CODE = 35
         private const val LOCATION_PERMISSION_INDEX = 0
         private const val BACKGROUND_LOCATION_PERMISSION_INDEX = 1
         private const val REQUEST_TURN_DEVICE_LOCATION_ON = 29
@@ -100,12 +120,9 @@ class SaveReminderFragment : BaseFragment() {
         binding.selectLocation.setOnClickListener {
             _viewModel.saveLocationButtonClickedFromUpdateOrDelete.value = false
             _viewModel.navigationCommand.value = NavigationCommand.To(
-                SaveReminderFragmentDirections
-                    .actionSaveReminderFragmentToSelectLocationFragment()
+                SaveReminderFragmentDirections.actionSaveReminderFragmentToSelectLocationFragment()
             )
         }
-
-
 
         binding.saveReminder.setOnClickListener {
 
@@ -133,6 +150,7 @@ class SaveReminderFragment : BaseFragment() {
         )
         if (_viewModel.validateEnteredData(reminderDataItem)) {
             _viewModel.saveReminder(reminderDataItem)
+
             setupGeofence()
             // Navigate back to the reminders list
             findNavController().navigate(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())
@@ -164,11 +182,19 @@ class SaveReminderFragment : BaseFragment() {
         return foregroundLocationApproved && backgroundPermissionApproved
     }
 
+    // Notification
+    private fun notificationPermissionApproved(): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            NotificationManagerCompat.from(requireContext()).areNotificationsEnabled()
+        } else {
+            true // Before Android 13, the permission is not required.
+        }
+    }
+
     /** PERMISSIONS
      * Step 3: Request permissions
      * If they are approved, then just return, otherwise request them
      * */
-
     @TargetApi(29)
     private fun requestForegroundAndBackgroundLocationPermissions() {
         if (foregroundAndBackgroundLocationPermissionApproved())
@@ -193,7 +219,7 @@ class SaveReminderFragment : BaseFragment() {
 
     /** PERMISSIONS
      * Step 4: Handle permissions. After the user responds to the permission request at step 3, we check the result
-     * If they are approved, then just return, otherwise request them
+     * If they are approved, then just return, otherwise request them. I check the notification permission with a different method
      * */
     @RequiresApi(Build.VERSION_CODES.N)
     @Deprecated("Deprecated in Java")
@@ -272,15 +298,51 @@ class SaveReminderFragment : BaseFragment() {
         }
         locationSettingsResponseTask.addOnCompleteListener {
             if (it.isSuccessful) {
-                val notificationManager =
-                    context?.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-                // Check if notifications NOT are enabled, if not, show a dialogue to the user
-                if (!notificationManager.areNotificationsEnabled()) {
-                    showNotificationPermissionDialog()
-                    println("dra Notifications are NOT enabled and all of the permissions are granted")
-                } else {
-                    println("dra Notifications are enabled and all of the permissions are granted")
-                    validateReminderStartGeofenceAndSaveReminder()
+                // Notifications for API 33 and above
+                when {
+                    ContextCompat.checkSelfPermission(
+                        this.requireContext(),
+                        Manifest.permission.POST_NOTIFICATIONS
+                    ) == PackageManager.PERMISSION_GRANTED -> {
+                        // You can use the API that requires the permission.
+                        validateReminderStartGeofenceAndSaveReminder()
+                    }
+
+                    ActivityCompat.shouldShowRequestPermissionRationale(
+                        requireActivity(), Manifest.permission.POST_NOTIFICATIONS
+                    ) -> {
+                        // In an educational UI, explain to the user why your app requires this
+                        // permission for a specific feature to behave as expected, and what
+                        // features are disabled if it's declined. In this UI, include a
+                        // "cancel" or "no thanks" button that lets the user continue
+                        // using your app without granting the permission.
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            showNotificationRationaleDialog()
+                        }
+                    }
+
+                    else -> {
+                        // You can directly ask for the permission.
+                        // The registered ActivityResultCallback gets the result of this request.
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                        }
+                    }
+                }
+
+                // Notifications for API 32 and below
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+                    val notificationManager =
+                        context?.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                    // Check if notifications are NOT enabled, if not, show a dialogue to the user
+                    if (notificationManager.areNotificationsEnabled()) {
+                        println("dra Notifications are enabled and all of the permissions are granted")
+                        // give direct permission
+                        validateReminderStartGeofenceAndSaveReminder()
+                    } else {
+                        showNotificationRationaleDialog()
+                        println("dra Notifications are NOT enabled and all of the permissions are granted")
+                    }
                 }
             }
         }
@@ -338,10 +400,6 @@ class SaveReminderFragment : BaseFragment() {
         if (requestCode == REQUEST_TURN_DEVICE_LOCATION_ON) {
             // If the user has turned on the device's location, then we can start the geofence
             checkDeviceLocationSettingsAndStartSavingReminder(false)
-            // Make toast - finally works!
-//            Toast.makeText(
-//                context, "An answer was given! - dragos", Toast.LENGTH_LONG
-//            ).show()
         }
     }
 
@@ -349,8 +407,7 @@ class SaveReminderFragment : BaseFragment() {
      * Step 7: If the user has denied notifications, then we show a dialogue to the user.
      * The rationale is that the app needs notifications to work properly and it is written directly in the xml file
      * */
-    @RequiresApi(Build.VERSION_CODES.N)
-    private fun showNotificationPermissionDialog() {
+    private fun showNotificationRationaleDialog() {
         // Inflate the custom layout
         val dialogView =
             LayoutInflater.from(requireContext()).inflate(R.layout.notification_dialogue, null)
@@ -358,24 +415,38 @@ class SaveReminderFragment : BaseFragment() {
             .setView(dialogView)
             .create()
 
-        // Set up the buttons
+        // Set up the buttons // Don't link directly to settings if the user does not want to enable notifications
         dialogView.findViewById<Button>(R.id.enableButton).setOnClickListener {
-            // Enable notifications in this dialog view without opening a new window
-            val intent = Intent()
-            intent.action = "android.settings.APP_NOTIFICATION_SETTINGS"
-            intent.putExtra("app_package", requireContext().packageName)
+            val intent = Intent().apply {
+                when {
+                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.O -> {
+                        action = Settings.ACTION_APP_NOTIFICATION_SETTINGS
+                        putExtra(Settings.EXTRA_APP_PACKAGE, requireContext().packageName)
+                    }
+
+                    else -> {
+                        // Fallback for earlier versions
+                        action = "android.settings.APP_NOTIFICATION_SETTINGS"
+                        putExtra("app_package", requireContext().packageName)
+                        putExtra("app_uid", requireContext().applicationInfo.uid)
+                    }
+                }
+            }
+            startActivity(intent)
             dialog.dismiss()
         }
 
         dialogView.findViewById<Button>(R.id.notNowButton).setOnClickListener {
-            // User refuses to enable notifications
-            dialog.dismiss()
+            // User refuses to enable notifications - WE SHOULDN'T FORCE THE USER TO ENABLE NOTIFICATIONS - SO WE CONTINUE WITH THE APP
+            validateReminderStartGeofenceAndSaveReminder()
+
             // Toast message explaining that notifications are essential to the app's functionality
             Toast.makeText(
                 context,
                 getString(R.string.notification_permission_toast),
                 Toast.LENGTH_LONG
             ).show()
+            dialog.dismiss()
         }
 
         dialog.show()
@@ -396,3 +467,13 @@ class SaveReminderFragment : BaseFragment() {
 //If the grantResults array’s value at the LOCATION_PERMISSION_INDEX has a PERMISSION_DENIED it means that the user denied foreground permissions.
 //If the request code equals REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE and the BACKGROUND_LOCATION_PERMISSION_INDEX
 //is denied it means that the device is running API 29 or above and that background permissions were denied.
+
+//val notificationManager =
+//    context?.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+//// Check if notifications NOT are enabled, if not, show a dialogue to the user
+//if (!notificationManager.areNotificationsEnabled()) {
+//    showNotificationPermissionDialog()
+//    println("dra Notifications are NOT enabled and all of the permissions are granted")
+//} else {
+//    println("dra Notifications are enabled and all of the permissions are granted")
+//}

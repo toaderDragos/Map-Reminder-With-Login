@@ -67,5 +67,5 @@
     <string name="enable">Enable</string>
     <string name="not_now">Not Now</string>
     <string name="notification_permission_title">Notification Permission</string>
-    <string name="notification_permission_toast">Notifications are essential to the app\'s functionality</string>
+    <string name="notification_permission_toast">Using the app without notifications. On entering your geofence you won\'t be notified!</string>
 </resources>

@@ -29,10 +29,11 @@ The Location Reminder Project is an Android application designed to set geofence
 ### Code Quality
 - **Kotlin Best Practices**: The codebase adheres to best practices in Android development with Kotlin, emphasizing clear and meaningful naming conventions.
 
-## Suggestions for Enhancement
-- **Comprehensive Test Coverage**: Extend testing to cover all aspects of the app.
-- **UI/UX Enhancements**: Update app styling using material design and improve map design for better user experience.
-- **Reminders Management**: Implement features to edit and delete reminders and their corresponding geofence requests.
+## Other enhancements
+- **Comprehensive Test Coverage**: Extended testing to cover all aspects of the app.
+- **UI/UX Enhancements**: Updated app styling using material design and improve map design for better user experience.
+- **Reminders Management**: Implemented features to edit and delete reminders and their corresponding geofence requests.
 
 ---
 For detailed setup and usage instructions, please refer to the individual documentation files in the project repository.
+The app was originaly meant for a maximum API of 29 but I converted it into a API 33+ app. It took some time but solved over 200 errors in the process.

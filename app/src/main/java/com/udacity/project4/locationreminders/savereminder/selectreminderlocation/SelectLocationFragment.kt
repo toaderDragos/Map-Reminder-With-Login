@@ -170,7 +170,7 @@ class SelectLocationFragment: Fragment() {
     // The permission is given above this method. Request permissions is called below from a Fragment context
     @SuppressLint("MissingPermission")
     private fun enableMyLocation() {
-        googleMap.setMyLocationEnabled(true)
+        googleMap.isMyLocationEnabled = true
         zoomOnMyLocation()
     }
 
@@ -247,9 +247,34 @@ class SelectLocationFragment: Fragment() {
         else -> super.onOptionsItemSelected(item)
     }
 
-    /**
-     *  Checking Coarse Location, Fine Location, (Background Location IS NOT NECESSARY) and turned on location services
-     */
+    /***  STEP 1: Determines whether the app has the appropriate permissions */
+    private fun foregroundLocationPermissionApproved(): Boolean {
+        // is permission granted - the val below has the answer
+        val foregroundLocationApproved = (
+                PackageManager.PERMISSION_GRANTED == context?.let {
+                    ActivityCompat.checkSelfPermission(it, Manifest.permission.ACCESS_FINE_LOCATION)
+                })
+        if (!foregroundLocationApproved) {
+            // Show a toast message with a rationale to why the app needs this permission
+            Toast.makeText(
+                context,
+                "Location permission is needed for core functionality",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+        return foregroundLocationApproved
+    }
+
+    /***  STEP 2: If the Location is approved, then continue, else Requests ACCESS_FINE_LOCATION and (on Android 10+ (Q)).*/
+    private fun requestForegroundLocationPermissions() {
+        if (foregroundLocationPermissionApproved())
+            return
+        val permissionsArray = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
+        Log.d("dra", "Request user's location")
+        this.requestPermissions(permissionsArray, REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE)
+    }
+
+    /***  STEP 3: Checking  Fine Location, (Background Location IS NOT NECESSARY) and turned on location services*/
     private fun checkForegroundLocationPermissions() {
         if (foregroundLocationPermissionApproved()) {
             enableMyLocation()
@@ -263,9 +288,37 @@ class SelectLocationFragment: Fragment() {
         }
     }
 
+    /***  STEP 4: Handle the result of the permission request */
+    @Deprecated("Deprecated in Java")
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
+    ) {
+        if (grantResults.isEmpty() ||
+            grantResults[LOCATION_PERMISSION_INDEX] == PackageManager.PERMISSION_DENIED
+        ) {
+            Snackbar.make(
+                this.requireView(),
+                R.string.permission_denied_explanation,
+                Snackbar.LENGTH_INDEFINITE
+            )
+                .setAction(R.string.settings) {
+                    startActivity(Intent().apply {
+                        action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+                        data = Uri.fromParts("package", BuildConfig.APPLICATION_ID, null)
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                    })
+                }.show()
+        } else {
+            // Gets called immediately after the user grants the location permission
+            enableMyLocation()
+        }
+    }
+
     /**
-     *  Uses the Location Client to check the current state of location settings, and gives the user
-     *  the opportunity to turn ON location services within our app.
+     *  STEP 5: LOCATION SERVICES. Uses the Location Client to check the current state of location settings, and gives the user
+     *  the opportunity to turn ON location services within our app. It is activated on click on the my location button
      */
     @SuppressLint("VisibleForTests")
     private fun checkDeviceLocationSettings(resolve: Boolean = true) {
@@ -307,60 +360,6 @@ class SelectLocationFragment: Fragment() {
         }
     }
 
-    @Deprecated("Deprecated in Java")
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray
-    ) {
-        if (grantResults.isEmpty() ||
-            grantResults[LOCATION_PERMISSION_INDEX] == PackageManager.PERMISSION_DENIED
-        ) {
-            Snackbar.make(
-                this.requireView(),
-                R.string.permission_denied_explanation,
-                Snackbar.LENGTH_INDEFINITE
-            )
-                .setAction(R.string.settings) {
-                    startActivity(Intent().apply {
-                        action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
-                        data = Uri.fromParts("package", BuildConfig.APPLICATION_ID, null)
-                        flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                    })
-                }.show()
-        } else {
-            checkDeviceLocationSettings()
-            // on results ok this should be enabled!
-        }
-    }
-
-    /***  Determines whether the app has the appropriate permissions*/
-    private fun foregroundLocationPermissionApproved(): Boolean {
-        // is permission granted - the val below has the answer
-        val foregroundLocationApproved = (
-                PackageManager.PERMISSION_GRANTED == context?.let {
-                    ActivityCompat.checkSelfPermission(it, Manifest.permission.ACCESS_FINE_LOCATION)
-                })
-        // if the foreground permission is not approved
-        if (!foregroundLocationApproved) {
-            // Show a toast message with a rationale to why the app needs this permission
-            Toast.makeText(
-                context,
-                "Location permission is needed for core functionality",
-                Toast.LENGTH_SHORT
-            ).show()
-        }
-        return foregroundLocationApproved
-    }
-
-    /***  If the Location is approved, then continue, else Requests ACCESS_FINE_LOCATION and (on Android 10+ (Q)).*/
-    private fun requestForegroundLocationPermissions() {
-        if (foregroundLocationPermissionApproved())
-            return
-        val permissionsArray = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
-        Log.d("dra", "Request user's location")
-        this.requestPermissions(permissionsArray, REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE)
-    }
 }
 
 
